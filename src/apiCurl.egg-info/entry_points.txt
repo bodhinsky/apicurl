@@ -1,0 +1,2 @@
+[console_scripts]
+apicurl = apiCurl.__main__:main

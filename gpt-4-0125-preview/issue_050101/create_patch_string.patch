@@ -1,0 +1,15 @@
+diff --git a/src/apiCurl/fetchUserCollection.py b/src/apiCurl/fetchUserCollection.py
+index 1234567..89abcde 100644
+--- a/src/apiCurl/fetchUserCollection.py
++++ b/src/apiCurl/fetchUserCollection.py
+@@ -4,5 +4,12 @@
+ def get_user_collection(page=1):
++    """Fetches a user's collection from Discogs for a specified page.
++
++    Args:
++        page (int, optional): The page number to fetch. Defaults to 1.
++
++    Returns:
++        tuple: A tuple containing the list of releases and either the URL to the next page or False if there is no next page.
++     """
+     user_name, user_token = getUserCredentials(service='Discogs')

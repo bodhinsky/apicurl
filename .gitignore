@@ -1,0 +1,5 @@
+/.pytest_cache
+keys.cfg
+swe_agent_output*
+.ld
+.DS_Store

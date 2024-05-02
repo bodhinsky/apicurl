@@ -1,0 +1,8 @@
+LICENSE
+pyproject.toml
+setup.cfg
+src/apiCurl.egg-info/PKG-INFO
+src/apiCurl.egg-info/SOURCES.txt
+src/apiCurl.egg-info/dependency_links.txt
+src/apiCurl.egg-info/entry_points.txt
+src/apiCurl.egg-info/top_level.txt

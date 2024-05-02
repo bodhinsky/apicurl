@@ -1,0 +1,3 @@
+{
+  "patch_string": "diff --git a/src/apicurl/authCurl.py b/src/apicurl/authCurl.py\n@@ -1,1 +1,10 @@\n+import requests\n+from getpass import getpass\n+\n+def authenticate(url):\n+    user = input('Enter your username:')\n+    password = getpass('Enter your password:')\n+    response = requests.get(url, auth=(user, password))\n+    return response.status_code == 200\n+\n\ndiff --git a/src/apicurl/__main__.py b/src/apicurl/__main__.py\n@@ -0,0 +1,7 @@\n+from .authCurl import authenticate\n+\n+if __name__ == '__main__':\n+    url = 'https://api.discogs.com'\n+    if authenticate(url):\n+        print('Authentication successful')\n+    else:\n+        print('Authentication failed')\n"
+}

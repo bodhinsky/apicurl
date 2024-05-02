@@ -1,0 +1,13 @@
+diff --git a/src/apiCurl/dataProcessing.py b/src/apiCurl/dataProcessing.py
+index 83b4e2a..c4d72b8 100644
+--- a/src/apiCurl/dataProcessing.py
++++ b/src/apiCurl/dataProcessing.py
+@@ -7,7 +7,8 @@ def process_collection(collection):
+         title = release['basic_information']['title']
+         artist = release['basic_information']['artists'][0]['name']
+         # Handling different writings for artist's names
+-        artist = release['basic_information']['artists'][0]['name']
++        artist = artist.split(' (')[0]  # Removes any disambiguation such as (2) in artist names
+         year = release['basic_information']['year']
+         genre = release['basic_information']['genres'][0] if release['basic_information']['genres'] else None
+         style = release['basic_information']['styles'][0] if release['basic_information']['styles'] else None
