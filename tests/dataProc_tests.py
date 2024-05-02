@@ -1,6 +1,6 @@
 from apiCurl.dataProcessing import process_collection
 
-collection_path = 'data/Collection.json'
+collection_path = 'data/testCollection.json'
 
 if os.path.exists(collection_path):
     with open(collection_path) as json_file:
