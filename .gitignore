@@ -3,3 +3,5 @@ keys.cfg
 swe_agent_output*
 .ld
 .DS_Store
+
+/__pycache__

@@ -8,13 +8,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-httpx = "^0.27"
-logging = "^0.4.9.6"
+requests = "^2.31.0"
 pyfiglet = "^1.0.2"
 readchar = "^4.0.6"
-pandas = "^2.2.2"
-requests = "^2.31.0"
-ollama = "^0.1.9"
+requests-mock = "^1.12.1"
+app = "^0.0.1"
+
 
 [build-system]
 requires = ["poetry-core"]
