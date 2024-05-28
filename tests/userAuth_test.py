@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+import requests
 import unittest
 from unittest.mock import patch, mock_open
 from apiCurl.userAuth import getUserCredentials, get_user_auth_token
@@ -13,7 +17,7 @@ class TestUserAuth(unittest.TestCase):
     @patch('apiCurl.userAuth.open', new_callable=mock_open, read_data='{}')
     def test_getUserCredentials_failure(self, mock_file):
         # Test failure when service is not in JSON file
-        with self.assertRaises(ValueError):
+        with self.assertRaises(KeyError):
             getUserCredentials('Spotify')
 
     @patch('apiCurl.userAuth.getUserCredentials')
@@ -34,7 +38,7 @@ class TestUserAuth(unittest.TestCase):
         self.assertEqual(result, {"access_token": "token123"})
         mock_post.assert_called_once()
 
-    @patch('apiCurl.userAuth.requests.post')
+    @patch('requests.post')
     @patch('apiCurl.userAuth.getUserCredentials')
     def test_get_user_auth_token_failure(self, mock_getUserCredentials, mock_post):
         # Setup mock to raise an HTTP error

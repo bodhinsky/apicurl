@@ -1,4 +1,5 @@
-import os, logging, pyfiglet, readchar, json
+import os
+import json
 from fetchProcessCollection import fetch_all_collection_pages, process_collection
 
 def fetch_and_process():
@@ -9,10 +10,7 @@ def fetch_and_process():
 
 
 if __name__ == "__main__":
-    options = ["Fetch and Process Collection", "Supplement Collection", "Export Collection", "Ask about your collection", "Exit"]
-    current_selection = 0
     pre_collection = False
-    title = pyfiglet.figlet_format("apiCurl")
     collection_path = 'data/Collection.json'
 
     if os.path.exists(collection_path):

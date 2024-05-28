@@ -51,9 +51,12 @@ def get_user_auth_token():
         # Check for HTTP errors
         response.raise_for_status()
 
-        # Parse the JSON response
-        data = response.json()
-        return data
+        if response.status_code == 200:
+            # Parse the JSON response
+            data = response.json()
+            return data
+        else:
+            print(f"ERROR Fetching User Credentials\n{response}")
 
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP error occurred: {http_err}")
@@ -61,9 +64,3 @@ def get_user_auth_token():
         print(f"An error occurred during the request: {req_err}")
     except json.JSONDecodeError as json_err:
         print(f"JSON decoding error occurred: {json_err}")
-
-    # If the response status code is 200, return the data
-    if response.status_code == 200:
-        return data
-    else:
-        print("ERROR Fetching User Credentials")

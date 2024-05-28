@@ -1,5 +1,5 @@
 import requests
-from userAuth import getUserCredentials
+from apiCurl.userAuth import getUserCredentials
 
 def get_user_collection(page=1):
     """

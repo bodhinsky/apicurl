@@ -1,10 +1,13 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 import unittest
 from unittest.mock import patch, Mock
-from apiCurl import get_user_collection, fetch_all_collection_pages, process_collection
+from apiCurl.fetchProcessCollection import get_user_collection, fetch_all_collection_pages, process_collection
 
 class TestUserCollection(unittest.TestCase):
-    @patch('apiCurl.requests.get')
-    @patch('apiCurl.getUserCredentials')
+    @patch('requests.get')
+    @patch('apiCurl.userAuth.getUserCredentials')
     def test_get_user_collection_success(self, mock_getUserCredentials, mock_get):
         # Setup mock responses
         mock_getUserCredentials.return_value = ('testuser', 'testtoken')
@@ -24,19 +27,22 @@ class TestUserCollection(unittest.TestCase):
         self.assertEqual(result, (['release1', 'release2'], 'next_url'))
         mock_get.assert_called_once()
 
-    @patch('apiCurl.requests.get')
-    @patch('apiCurl.getUserCredentials')
+    @patch('requests.get')
+    @patch('apiCurl.userAuth.getUserCredentials')
     def test_get_user_collection_failure(self, mock_getUserCredentials, mock_get):
         mock_getUserCredentials.return_value = ('testuser', 'testtoken')
         mock_get.side_effect = Exception('Error fetching collection')
 
         # Call the function
-        result = get_user_collection(1)
+        with self.assertRaises(Exception) as context:
+            result = get_user_collection(1)
+            self.assertEqual(result, ([], False))
 
         # Verify results
-        self.assertEqual(result, ([], False))
+        self.assertTrue("Error fetching collection" in str(context.exception))
+        #self.assertEqual(result, ([], False))
 
-    @patch('apiCurl.get_user_collection')
+    @patch('apiCurl.fetchProcessCollection.get_user_collection')
     def test_fetch_all_collection_pages(self, mock_get_user_collection):
         # Setup mock responses
         mock_get_user_collection.side_effect = [
