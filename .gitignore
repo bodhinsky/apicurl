@@ -4,6 +4,6 @@ swe_agent_output*
 .ld
 .DS_Store
 
-__pycache__
+**/__pycache__/
 providers
 backups
