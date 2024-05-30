@@ -1,0 +1,58 @@
+[
+    {
+        "Title": "Puzzle",
+        "Artist": "Biffy Clyro",
+        "Year": 2007,
+        "Genre": "Rock",
+        "Style": "Indie Rock"
+    },
+    {
+        "Title": "Only Revolutions",
+        "Artist": "Biffy Clyro",
+        "Year": 2009,
+        "Genre": "Rock",
+        "Style": "Alternative Rock"
+    },
+    {
+        "Title": "Opposites",
+        "Artist": "Biffy Clyro",
+        "Year": 0,
+        "Genre": "Rock",
+        "Style": "Alternative Rock"
+    },
+    {
+        "Title": "Bon Iver, Bon Iver",
+        "Artist": "Bon Iver",
+        "Year": 2011,
+        "Genre": "Rock",
+        "Style": "Folk Rock"
+    },
+    {
+        "Title": "Frampton Comes Alive",
+        "Artist": "Peter Frampton",
+        "Year": 0,
+        "Genre": "Rock",
+        "Style": "Rock & Roll"
+    },
+    {
+        "Title": "And I'm Not Like Other",
+        "Artist": "Supertramp",
+        "Year": 1970,
+        "Genre": "Rock",
+        "Style": "Prog Rock"
+    },
+    {
+        "Title": "Outlandos D'Amour",
+        "Artist": "The Police",
+        "Year": 1979,
+        "Genre": "Rock",
+        "Style": "New Wave"
+    },
+    {
+        "Title": "Elephunk",
+        "Artist": "Black Eyed Peas",
+        "Year": 2003,
+        "Genre": "Hip Hop",
+        "Style": "Contemporary R&B"
+    }
+]

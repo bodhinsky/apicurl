@@ -1,1 +1,0 @@
-Improve data processing or fetching, so it handles different writings for artists names. There have been errors due to multiple artists with the same names e.g. Band On The Run by Wings (2) seems to be missing on Spotify - while trying to validate additional information - maybe checking for more releases or other datasources could improve this behaviour
