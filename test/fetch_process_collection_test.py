@@ -8,6 +8,10 @@ from apicurl.fetch_process_collection import get_user_collection, fetch_all_coll
 class TestUserCollection(unittest.TestCase):
     @patch('requests.get')
     @patch('apicurl.user_auth.get_user_credentials')
+    @patch.dict(os.environ, {
+        'DISCOGS_USER_NAME': 'abc123',
+        'DISCOGS_USER_SECRET': 'def456'
+    })
     def test_get_user_collection_success(self, mock_get_user_credentials, mock_get):
         # Setup mock responses
         mock_get_user_credentials.return_value = ('testuser', 'testtoken')
