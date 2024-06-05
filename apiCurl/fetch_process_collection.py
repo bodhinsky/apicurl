@@ -1,5 +1,5 @@
 import requests
-from .user_auth import get_user_credentials
+from apicurl.user_auth import get_user_credentials
 
 def get_user_collection(page=1):
     """
