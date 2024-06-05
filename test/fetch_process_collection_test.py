@@ -3,14 +3,14 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 import unittest
 from unittest.mock import patch, Mock
-from apiCurl.fetchProcessCollection import get_user_collection, fetch_all_collection_pages, process_collection
+from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection
 
 class TestUserCollection(unittest.TestCase):
     @patch('requests.get')
-    @patch('apiCurl.userAuth.getUserCredentials')
-    def test_get_user_collection_success(self, mock_getUserCredentials, mock_get):
+    @patch('apicurl.user_auth.get_user_credentials')
+    def test_get_user_collection_success(self, mock_get_user_credentials, mock_get):
         # Setup mock responses
-        mock_getUserCredentials.return_value = ('testuser', 'testtoken')
+        mock_get_user_credentials.return_value = ('testuser', 'testtoken')
         mock_response = Mock()
         mock_response.json.return_value = {
             'releases': ['release1', 'release2'],
@@ -28,9 +28,9 @@ class TestUserCollection(unittest.TestCase):
         mock_get.assert_called_once()
 
     @patch('requests.get')
-    @patch('apiCurl.userAuth.getUserCredentials')
-    def test_get_user_collection_failure(self, mock_getUserCredentials, mock_get):
-        mock_getUserCredentials.return_value = ('testuser', 'testtoken')
+    @patch('apicurl.user_auth.get_user_credentials')
+    def test_get_user_collection_failure(self, mock_get_user_credentials, mock_get):
+        mock_get_user_credentials.return_value = ('testuser', 'testtoken')
         mock_get.side_effect = Exception('Error fetching collection')
 
         # Call the function
@@ -42,7 +42,7 @@ class TestUserCollection(unittest.TestCase):
         self.assertTrue("Error fetching collection" in str(context.exception))
         #self.assertEqual(result, ([], False))
 
-    @patch('apiCurl.fetchProcessCollection.get_user_collection')
+    @patch('apicurl.fetch_process_collection.get_user_collection')
     def test_fetch_all_collection_pages(self, mock_get_user_collection):
         # Setup mock responses
         mock_get_user_collection.side_effect = [

@@ -1,6 +1,6 @@
 import os
 import json
-from fetchProcessCollection import fetch_all_collection_pages, process_collection
+from fetch_process_collection import fetch_all_collection_pages, process_collection
 
 def fetch_and_process():
     dc_all_releases = fetch_all_collection_pages()

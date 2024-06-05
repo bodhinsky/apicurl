@@ -4,27 +4,29 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 import requests
 import unittest
 from unittest.mock import patch, mock_open
-from apiCurl.userAuth import getUserCredentials, get_user_auth_token
+from apicurl.user_auth import get_user_credentials, get_user_auth_token
 
 class TestUserAuth(unittest.TestCase):
-    @patch('apiCurl.userAuth.open', new_callable=mock_open, read_data='{"Spotify": {"client_id": "abc123", "client_secret": "def456"}}')
-    def test_getUserCredentials_success(self, mock_file):
+    @patch.dict(os.environ, {
+        'SPOTIFY_USER_NAME': 'abc123',
+        'SPOTIFY_USER_SECRET': 'def456'
+    })
+    def test_get_user_credentials_success(self):
         # Test successful retrieval of credentials
-        client_id, client_secret = getUserCredentials('Spotify')
+        client_id, client_secret = get_user_credentials('Spotify')
         self.assertEqual(client_id, 'abc123')
         self.assertEqual(client_secret, 'def456')
 
-    @patch('apiCurl.userAuth.open', new_callable=mock_open, read_data='{}')
-    def test_getUserCredentials_failure(self, mock_file):
+    def test_get_user_credentials_failure(self):
         # Test failure when service is not in JSON file
-        with self.assertRaises(KeyError):
-            getUserCredentials('Spotify')
+        with self.assertRaises(EnvironmentError):
+            get_user_credentials('Spotify')
 
-    @patch('apiCurl.userAuth.getUserCredentials')
-    @patch('apiCurl.userAuth.requests.post')
-    def test_get_user_auth_token_success(self, mock_post, mock_getUserCredentials):
+    @patch('apicurl.user_auth.get_user_credentials')
+    @patch('apicurl.user_auth.requests.post')
+    def test_get_user_auth_token_success(self, mock_post, mock_get_user_credentials):
         # Setup mock responses
-        mock_getUserCredentials.return_value = ('abc123', 'def456')
+        mock_get_user_credentials.return_value = ('abc123', 'def456')
         mock_response = unittest.mock.Mock()
         mock_response.raise_for_status = unittest.mock.Mock()
         mock_response.status_code = 200
@@ -39,10 +41,10 @@ class TestUserAuth(unittest.TestCase):
         mock_post.assert_called_once()
 
     @patch('requests.post')
-    @patch('apiCurl.userAuth.getUserCredentials')
-    def test_get_user_auth_token_failure(self, mock_getUserCredentials, mock_post):
+    @patch('apicurl.user_auth.get_user_credentials')
+    def test_get_user_auth_token_failure(self, mock_get_user_credentials, mock_post):
         # Setup mock to raise an HTTP error
-        mock_getUserCredentials.return_value = ('abc123', 'def456')
+        mock_get_user_credentials.return_value = ('abc123', 'def456')
         mock_post.side_effect = requests.exceptions.HTTPError("HTTP error occurred")
 
         # Call the function and check for no return value

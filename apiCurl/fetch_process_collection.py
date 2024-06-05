@@ -1,5 +1,5 @@
 import requests
-from apiCurl.userAuth import getUserCredentials
+from .user_auth import get_user_credentials
 
 def get_user_collection(page=1):
     """
@@ -12,7 +12,7 @@ def get_user_collection(page=1):
         tuple: A tuple containing the list of releases and the URL of the next page if available.
     """
 
-    user_name, user_token = getUserCredentials(service='Discogs')
+    user_name, user_token = get_user_credentials(service='discogs')
 
     # Define the headers for the request
     headers = {
@@ -106,13 +106,13 @@ def visualize_artist_release_percentage(dataframe):
 def update_data_model_and_storage(dataframe):
     return
 
-def enhance_ui_with_visualization_and_enriched_data(visualization):
+def enhance_ui_with_artist_release_percentage_visualization(visualization):
     return
 
 def secure_api_communication(api_data):
     return
 
-def optimize_performance_for_fetching_processing_visualization(dataframe):
+def optimize_performance_for_data_processing_and_visualization(dataframe):
     return
 
 def conduct_static_code_analysis():

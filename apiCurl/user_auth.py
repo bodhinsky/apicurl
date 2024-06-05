@@ -1,7 +1,11 @@
+from dotenv import load_dotenv
+import os
 import json
 import requests
 
-def getUserCredentials(service: str) -> tuple:
+load_dotenv()
+
+def get_user_credentials(service: str) -> tuple:
     """
     Retrieves client ID and secret for a given service from a JSON file.
     
@@ -14,18 +18,17 @@ def getUserCredentials(service: str) -> tuple:
     Raises:
         ValueError: If the service is not found in the JSON file or if the JSON file does not exist.
     """
-    # Open and read the JSON file, expecting it to be located at 'src/.ld'
-    with open('src/.ld') as f:
-        data = json.loads(f.read())
 
-    # Load client ID and secret for the specified service from the JSON data
-    login = data[service]
-    if not isinstance(login, dict) or 'client_id' not in login or 'client_secret' not in login:
-        raise ValueError(f"Invalid credentials found for service '{service}'")
-    client_id = login['client_id']
-    client_secret = login['client_secret']
+    user_name = os.getenv(f'{service.upper()}_USER_NAME')
+    user_secret = os.getenv(f'{service.upper()}_USER_SECRET')
 
-    return client_id, client_secret
+    if user_name is None:
+        raise EnvironmentError(f"Environment variable {service.upper()}_USER_NAME is not set.")
+
+    if user_secret is None:
+        raise EnvironmentError(f"Environment variable {service.upper()}_USER_TOKEN is not set.")
+    
+    return user_name, user_secret
 
 def get_user_auth_token():
     """
@@ -36,7 +39,7 @@ def get_user_auth_token():
 
     :return: A JSON object containing the user's authentication token
     """
-    client_id, client_secret = getUserCredentials(service='Spotify')
+    client_id, client_secret = get_user_credentials(service='Spotify')
 
     url = "https://accounts.spotify.com/api/token"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
