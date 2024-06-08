@@ -14,6 +14,17 @@ class TestUserCollection(unittest.TestCase):
         'DISCOGS_USER_NAME': 'abc123',
         'DISCOGS_USER_SECRET': 'def456'
     })
+    
+    def setUp(self):
+        # Sample music collection data for testing
+        self.collection = [
+            {'artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
+            {'artist': 'Artist B', 'album': 'Album 2', 'genre': 'Jazz', 'release_year': 2005},
+            {'artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
+            {'artist': 'Artist C', 'album': 'Album 4', 'genre': 'Pop', 'release_year': 2015},
+        ]
+        self.dataframe = pd.DataFrame(self.collection)
+    
     def test_get_user_collection_success(self, mock_get_user_credentials, mock_get):
         # Setup mock responses
         mock_get_user_credentials.return_value = ('testuser', 'testtoken')
@@ -89,52 +100,105 @@ class TestUserCollection(unittest.TestCase):
         result = process_collection(collection)
         self.assertEqual(result, expected_result)
 
-    def setUp(self):
-        # Sample music collection data for testing
-        self.collection = [
-            {'artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
-            {'artist': 'Artist B', 'album': 'Album 2', 'genre': 'Jazz', 'release_year': 2005},
-            {'artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
-            {'artist': 'Artist C', 'album': 'Album 4', 'genre': 'Pop', 'release_year': 2015},
-        ]
-        self.dataframe = pd.DataFrame(self.collection)
-
     @patch('apicurl.fetch_process_collection.calculate_artist_release_percentage')
     def test_calculate_artist_release_percentage(self, mock_calculate):
+        # Mock setup
         artist_release_percentage = pd.DataFrame({
             'artist': ['Artist A', 'Artist B', 'Artist C'],
             'percentage': [66.67, 16.67, 16.67]
         })
         mock_calculate.return_value = artist_release_percentage
-        result = mock_calculate(self.dataframe)
+
+        # Call the function
+        result = calculate_artist_release_percentage(self.dataframe)
+
+        # Assertions
         self.assertIsInstance(result, pd.DataFrame)
         self.assertIn('artist', result.columns)
         self.assertIn('percentage', result.columns)
+        mock_calculate.assert_called_once_with(self.dataframe)
+        pd.testing.assert_frame_equal(result, artist_release_percentage)
+
+        # Edge case: Empty dataframe
+        empty_df = pd.DataFrame(columns=['artist', 'releases'])
+        mock_calculate.return_value = pd.DataFrame(columns=['artist', 'percentage'])
+        result = calculate_artist_release_percentage(empty_df)
+        self.assertTrue(result.empty)
+        mock_calculate.assert_called_with(empty_df)
 
     @patch('apicurl.fetch_process_collection.visualize_artist_release_percentage')
     def test_visualize_artist_release_percentage(self, mock_visualize):
+        # Mock setup
         mock_visualize.return_value = plt.Figure()
-        result = mock_visualize(self.dataframe)
+
+        # Call the function
+        result = visualize_artist_release_percentage(self.dataframe)
+
+        # Assertions
         self.assertIsInstance(result, plt.Figure)
+        mock_visualize.assert_called_once_with(self.dataframe)
+
+        # Edge case: Check with additional columns
+        extended_df = self.dataframe.copy()
+        extended_df['extra'] = [5, 5, 5, 5]
+        result = visualize_artist_release_percentage(extended_df)
+        self.assertIsInstance(result, plt.Figure)
+        mock_visualize.assert_called_with(extended_df)
 
     @patch('apicurl.fetch_process_collection.update_data_model_and_storage')
     def test_update_data_model_and_storage(self, mock_update):
+        # Mock setup
         mock_update.return_value = True
-        result = mock_update(self.dataframe)
+
+        # Call the function
+        result = update_data_model_and_storage(self.dataframe)
+
+        # Assertions
         self.assertTrue(result)
+        mock_update.assert_called_once_with(self.dataframe)
+
+        # Edge case: Handling a larger dataframe
+        large_df = pd.concat([self.dataframe] * 1000, ignore_index=True)
+        result = update_data_model_and_storage(large_df)
+        self.assertTrue(result)
+        mock_update.assert_called_with(large_df)
 
     @patch('apicurl.fetch_process_collection.enhance_ui_with_artist_release_percentage_visualization')
     def test_enhance_ui_with_artist_release_percentage_visualization(self, mock_enhance_ui):
+        # Mock setup
         mock_enhance_ui.return_value = True
         visualization = plt.Figure()
-        result = mock_enhance_ui(visualization)
+
+        # Call the function
+        result = enhance_ui_with_artist_release_percentage_visualization(visualization)
+
+        # Assertions
         self.assertTrue(result)
+        mock_enhance_ui.assert_called_once_with(visualization)
+
+        # Edge case: Invalid visualization object
+        with self.assertRaises(TypeError):
+            enhance_ui_with_artist_release_percentage_visualization("Not a Figure")
+        mock_enhance_ui.assert_not_called()
 
     @patch('apicurl.fetch_process_collection.optimize_performance_for_data_processing_and_visualization')
     def test_optimize_performance_for_data_processing_and_visualization(self, mock_optimize):
+        # Mock setup
         mock_optimize.return_value = True
-        result = mock_optimize(self.dataframe)
+
+        # Call the function
+        result = optimize_performance_for_data_processing_and_visualization(self.dataframe)
+
+        # Assertions
         self.assertTrue(result)
+        mock_optimize.assert_called_once_with(self.dataframe)
+
+        # Edge case: Performance with missing data
+        incomplete_df = self.dataframe.copy()
+        incomplete_df.at[2, 'releases'] = None
+        result = optimize_performance_for_data_processing_and_visualization(incomplete_df)
+        self.assertTrue(result)
+        mock_optimize.assert_called_with(incomplete_df)
 
 if __name__ == '__main__':
     unittest.main()
