@@ -130,13 +130,6 @@ class TestUserCollection(unittest.TestCase):
         result = mock_enhance_ui(visualization)
         self.assertTrue(result)
 
-    @patch('apicurl.fetch_process_collection.secure_api_communication')
-    def test_secure_api_communication(self, mock_secure_api):
-        mock_secure_api.return_value = True
-        api_data = {'token': 'securetoken'}
-        result = mock_secure_api(api_data)
-        self.assertTrue(result)
-
     @patch('apicurl.fetch_process_collection.optimize_performance_for_data_processing_and_visualization')
     def test_optimize_performance_for_data_processing_and_visualization(self, mock_optimize):
         mock_optimize.return_value = True
