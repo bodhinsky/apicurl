@@ -21,6 +21,15 @@ if __name__ == "__main__":
         release_collection_db = collection
 
     else:
+        print("No previous collection data found. Fetching...")
         release_collection_db = fetch_and_process()
+
+        ### POSSIBLE ISSUE
+        print("Saving to file.")
+        with open('data/Collection.json', 'w') as json_file:
+            json.dump(release_collection_db, json_file)
+            print("Saved collection data to file.")
+
+            print("Fetched and processed collection data.")
 
     print(release_collection_db)
