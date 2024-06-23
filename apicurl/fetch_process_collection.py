@@ -1,5 +1,8 @@
 import requests
 from apicurl.user_auth import get_user_credentials
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 def get_user_collection(page=1):
     """
@@ -97,11 +100,33 @@ def process_collection(collection):  # Process a collection of Discogs releases.
     
     return collection_info  # Return the processed collection
 
-def calculate_artist_release_percentage(dataframe):
-    return
+def calculate_artist_release_percentage(collection, percentage):
+    df = pd.DataFrame(collection)
+    # Calculate the percentage of releases for each artist
+    artist_counts = df['Artist'].value_counts(normalize=True) * 100
+    artist_percentages = artist_counts.reset_index()
+    artist_percentages.columns = ['Artist', 'Percentage']
+
+    # Separate the top 10 artists
+    top_artists = artist_percentages.head(percentage)
+
+    # Calculate the percentage for "Others"
+    others_percentage = artist_percentages['Percentage'][percentage:].sum()
+
+    # Append the "Others" row
+    top_artists = top_artists._append({'Artist': 'Others', 'Percentage': others_percentage}, ignore_index=True)
+    return top_artists
 
 def visualize_artist_release_percentage(dataframe):
-    return
+    # Create a bar plot to show the percentage of artists
+    plt.figure(figsize=(10, 6))
+    plt.pie(dataframe['Percentage'], labels=dataframe['Artist'], autopct='%1.1f%%', startangle=140)
+
+    # Adding titles
+    plt.title('Percentage of Music Releases by Artist')
+
+    # Display the plot
+    plt.show()
 
 def update_data_model_and_storage(dataframe):
     return

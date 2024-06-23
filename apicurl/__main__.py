@@ -1,6 +1,6 @@
 import os
 import json
-from apicurl.fetch_process_collection import fetch_all_collection_pages, process_collection
+from apicurl.fetch_process_collection import fetch_all_collection_pages, process_collection,calculate_artist_release_percentage,visualize_artist_release_percentage
 
 def fetch_and_process():
     dc_all_releases = fetch_all_collection_pages()
@@ -32,4 +32,9 @@ if __name__ == "__main__":
 
             print("Fetched and processed collection data.")
 
-    print(release_collection_db)
+    ### Another issue
+    print("Calculatings processing ...")
+    artist_percentages = calculate_artist_release_percentage(release_collection_db, percentage=10)
+    print("Visualize percentages of artists")
+    visualize_artist_release_percentage(artist_percentages)
+    #print(json.dumps(release_collection_db, indent=4))
