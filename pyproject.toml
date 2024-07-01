@@ -13,6 +13,9 @@ pyfiglet = "^1.0.2"
 readchar = "^4.0.6"
 requests-mock = "^1.12.1"
 app = "^0.0.1"
+setuptools = "^70.1.0"
+python-dotenv = "^1.0.1"
+seaborn = "^0.13.2"
 
 
 [build-system]

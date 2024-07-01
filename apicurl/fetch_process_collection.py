@@ -100,22 +100,31 @@ def process_collection(collection):  # Process a collection of Discogs releases.
     
     return collection_info  # Return the processed collection
 
-def calculate_artist_release_percentage(collection, percentage):
-    df = pd.DataFrame(collection)
-    # Calculate the percentage of releases for each artist
-    artist_counts = df['Artist'].value_counts(normalize=True) * 100
-    artist_percentages = artist_counts.reset_index()
-    artist_percentages.columns = ['Artist', 'Percentage']
+def split_artist_release_percentage(collection, top_number):
+    if isinstance(collection, list) and len(collection) > 0:   # If the collection is a list and contains at least one item, process it
+        df = pd.DataFrame(collection)
 
-    # Separate the top 10 artists
-    top_artists = artist_percentages.head(percentage)
+        # Check if 'Artist' column exists in the DataFrame
+        if 'Artist' not in df.columns:
+            raise ValueError("The collection does not contain an 'artist' column")
 
-    # Calculate the percentage for "Others"
-    others_percentage = artist_percentages['Percentage'][percentage:].sum()
+        # Calculate the percentage of releases for each artist
+        artist_counts = df['Artist'].value_counts(normalize=True) * 100
+        artist_percentages = artist_counts.reset_index()
+        artist_percentages.columns = ['Artist', 'Percentage']
 
-    # Append the "Others" row
-    top_artists = top_artists._append({'Artist': 'Others', 'Percentage': others_percentage}, ignore_index=True)
-    return top_artists
+        # Separate the top 10 artists
+        top_artists = artist_percentages.head(top_number)
+
+        # Calculate the percentage for "Others"
+        others_percentage = artist_percentages['Percentage'][top_number:].sum()
+
+        # Append the "Others" row
+        if others_percentage > 0:
+            top_artists = top_artists._append({'Artist': 'Others', 'Percentage': others_percentage}, ignore_index=True)
+        return top_artists
+    else:
+        return None
 
 def visualize_artist_release_percentage(dataframe):
     # Create a bar plot to show the percentage of artists
