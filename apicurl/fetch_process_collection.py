@@ -127,15 +127,21 @@ def split_artist_release_percentage(collection, top_number):
         return None
 
 def visualize_artist_release_percentage(dataframe):
-    # Create a bar plot to show the percentage of artists
-    plt.figure(figsize=(10, 6))
-    plt.pie(dataframe['Percentage'], labels=dataframe['Artist'], autopct='%1.1f%%', startangle=140)
+    if dataframe.empty:
+        raise ValueError("The dataframe is empty")
+    expected_columns = {'Artist', 'Percentage'}
+    if not expected_columns.issubset(dataframe.columns):
+        raise ValueError(f"The dataframe must contain the following columns: {expected_columns}")
+    else:
+        # Create a pie plot to show the percentage of artists
+        plt.figure(figsize=(10, 6))
+        plt.pie(dataframe['Percentage'], labels=dataframe['Artist'], autopct='%1.1f%%', startangle=140)
 
-    # Adding titles
-    plt.title('Percentage of Music Releases by Artist')
+        # Adding titles
+        plt.title('Percentage of Music Releases by Artist')
 
-    # Display the plot
-    plt.show()
+        # Display the plot
+        plt.show()
 
 def update_data_model_and_storage(dataframe):
     return
