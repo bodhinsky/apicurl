@@ -101,30 +101,6 @@ def test_process_collection_valid():
     assert result == expected_result
 
 def test_save_collection_to_json():
-    # Example collection
-    collection = [
-        {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
-        {'Artist': 'Artist B', 'album': 'Album 2', 'genre': 'Jazz', 'release_year': 2005},
-        {'Artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
-        {'Artist': 'Artist C', 'album': 'Album 4', 'genre': 'Pop', 'release_year': 2015},
-    ]
-    
-    # Filepath in the temporary directory
-    json_filepath = "data/Collection.json"
-    
-    # Call the function to save the collection to JSON
-    save_collection_to_json(collection, json_filepath)
-    
-    # Check if the file was created
-    assert os.path.exists(json_filepath)
-    
-    # Read the file and check its contents
-    with open(json_filepath, 'r') as f:
-        data = json.load(f)
-    
-    assert data == collection
-
-def test_save_collection_to_json():
     # Test case 1: Save a dictionary
     collection = {"key1": "value1", "key2": "value2"}
     filepath = "test_dict.json"
