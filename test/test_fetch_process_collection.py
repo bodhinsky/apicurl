@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch, Mock
 import pytest
 from apicurl.user_auth import get_user_credentials
-from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage
+from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage, visualize_artist_release_percentage
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -327,6 +327,80 @@ def test_split_artist_release_percentage_single_artist():
     assert len(result) == 1
     assert result['Artist'].tolist() == ['Artist A']
     assert result['Percentage'].values[0] == pytest.approx(100)
+
+@pytest.fixture
+def sample_percentage_dataframe():
+    return pd.DataFrame({
+        'Artist': ['Artist A', 'Artist B', 'Others'],
+        'Percentage': [50, 30, 20]
+    })
+
+def test_visualize_artist_release_percentage_normal(sample_dataframe):
+    with patch('matplotlib.pyplot.figure') as mock_figure, \
+         patch('matplotlib.pyplot.pie') as mock_pie, \
+         patch('matplotlib.pyplot.title') as mock_title, \
+         patch('matplotlib.pyplot.show') as mock_show:
+        
+        visualize_artist_release_percentage(sample_percentage_dataframe)
+        
+        mock_figure.assert_called_once_with(figsize=(10, 6))
+        mock_pie.assert_called_once()
+        mock_title.assert_called_once_with('Percentage of Music Releases by Artist')
+        mock_show.assert_called_once()
+
+def test_visualize_artist_release_percentage_empty_dataframe():
+    empty_df = pd.DataFrame()
+    with pytest.raises(ValueError, match="The dataframe is empty"):
+        visualize_artist_release_percentage(empty_df)
+
+def test_visualize_artist_release_percentage_missing_columns():
+    invalid_df = pd.DataFrame({'Artist': ['A', 'B'], 'InvalidColumn': [1, 2]})
+    with pytest.raises(ValueError, match="The dataframe must contain the following columns: {'Artist', 'Percentage'}"):
+        visualize_artist_release_percentage(invalid_df)
+
+@pytest.mark.parametrize("test_df", [
+    pd.DataFrame({'Artist': ['A', 'B'], 'Percentage': [60, 40]}),
+    pd.DataFrame({'Artist': ['A', 'B', 'C', 'D'], 'Percentage': [25, 25, 25, 25]}),
+    pd.DataFrame({'Artist': ['A'], 'Percentage': [100]})
+])
+def test_visualize_artist_release_percentage_various_inputs(test_df):
+    with patch('matplotlib.pyplot.figure') as mock_figure, \
+         patch('matplotlib.pyplot.pie') as mock_pie, \
+         patch('matplotlib.pyplot.title') as mock_title, \
+         patch('matplotlib.pyplot.show') as mock_show:
+        
+        visualize_artist_release_percentage(test_df)
+        
+        mock_figure.assert_called_once()
+        mock_pie.assert_called_once()
+        mock_title.assert_called_once()
+        mock_show.assert_called_once()
+
+        # Check if the correct data is passed to plt.pie
+        args, kwargs = mock_pie.call_args
+        assert (args[0] == test_df['Percentage']).all()
+        assert (kwargs['labels'] == test_df['Artist']).all()
+
+def test_visualize_artist_release_percentage_plot_details(sample_dataframe):
+    with patch('matplotlib.pyplot.figure') as mock_figure, \
+         patch('matplotlib.pyplot.pie') as mock_pie, \
+         patch('matplotlib.pyplot.title') as mock_title, \
+         patch('matplotlib.pyplot.show') as mock_show:
+        
+        visualize_artist_release_percentage(sample_percentage_dataframe)
+        
+        # Check figure size
+        mock_figure.assert_called_once_with(figsize=(10, 6))
+        
+        # Check pie chart details
+        args, kwargs = mock_pie.call_args
+        assert (args[0] == sample_dataframe['Percentage']).all()
+        assert (kwargs['labels'] == sample_dataframe['Artist']).all()
+        assert kwargs['autopct'] == '%1.1f%%'
+        assert kwargs['startangle'] == 140
+        
+        # Check title
+        mock_title.assert_called_once_with('Percentage of Music Releases by Artist')
 
 if __name__ == '__main__':
     pytest.main()

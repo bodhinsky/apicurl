@@ -117,5 +117,26 @@ def save_collection_to_json(collection, filepath):
         json.dump(collection, f)
     return True  # File was successfully written
 
-def split_artist_release_percentage():
+def split_artist_release_percentage(collection, top_number):
+    if isinstance(collection, list) and len(collection) > 0:   # If the collection is a list and contains at least one item, process it
+        df = pd.DataFrame(collection)
+        # Check if 'Artist' column exists in the DataFrame
+        if 'Artist' not in df.columns:
+            raise ValueError("The collection does not contain an 'artist' column")
+        # Calculate the percentage of releases for each artist
+        artist_counts = df['Artist'].value_counts(normalize=True) * 100
+        artist_percentages = artist_counts.reset_index()
+        artist_percentages.columns = ['Artist', 'Percentage']
+        # Separate the top 10 artists
+        top_artists = artist_percentages.head(top_number)
+        # Calculate the percentage for "Others"
+        others_percentage = artist_percentages['Percentage'][top_number:].sum()
+        # Append the "Others" row
+        if others_percentage > 0:
+            top_artists = top_artists._append({'Artist': 'Others', 'Percentage': others_percentage}, ignore_index=True)
+        return top_artists
+    else:
+        return None
+
+def visualize_artist_release_percentage(collection):
     return
