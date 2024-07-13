@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch, Mock
 import pytest
 from apicurl.user_auth import get_user_credentials
-from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json
+from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -263,6 +263,70 @@ def test_save_collection_invalid_json(tmp_path):
     
     with pytest.raises(TypeError):
         save_collection_to_json(collection, filepath)
+
+def test_split_artist_release_percentage_normal(sample_collection):
+    result = split_artist_release_percentage(sample_collection, 2)
+    
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == 3  # Top 2 + Others
+    assert result['Artist'].tolist() == ['Artist A', 'Artist B', 'Others']
+    assert result['Percentage'].sum() == pytest.approx(100)
+    assert result.loc[result['Artist'] == 'Artist A', 'Percentage'].values[0] == pytest.approx(50)
+    assert result.loc[result['Artist'] == 'Artist B', 'Percentage'].values[0] == pytest.approx(25)
+    assert result.loc[result['Artist'] == 'Others', 'Percentage'].values[0] == pytest.approx(25)
+
+def test_split_artist_release_percentage_empty_list():
+    result = split_artist_release_percentage([], 3)
+    assert result is None
+
+def test_split_artist_release_percentage_not_list():
+    result = split_artist_release_percentage({}, 3)
+    assert result is None
+
+def test_split_artist_release_percentage_no_artist_column():
+    invalid_collection = [{'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000}]
+    with pytest.raises(ValueError, match="The collection does not contain an 'artist' column"):
+        split_artist_release_percentage(invalid_collection, 3)
+
+def test_split_artist_release_percentage_all_unique(sample_collection):
+    result = split_artist_release_percentage(sample_collection, 3)
+    
+    assert len(result) == 3  # All unique artists, no 'Others'
+    assert 'Others' not in result['Artist'].tolist()
+    assert result['Percentage'].tolist() == [50, 25, 25]
+
+def test_split_artist_release_percentage_no_others(sample_collection):
+    result = split_artist_release_percentage(sample_collection, 4)
+    
+    assert len(result) == 3  # All unique artists, no 'Others'
+    assert 'Others' not in result['Artist'].tolist()
+    assert result['Percentage'].sum() == pytest.approx(100)
+
+def test_split_artist_release_percentage_large_top_number(sample_collection):
+    result = split_artist_release_percentage(sample_collection, 10)
+    
+    assert len(result) == 3  # All unique artists, no 'Others'
+    assert 'Others' not in result['Artist'].tolist()
+    assert result['Percentage'].sum() == pytest.approx(100)
+
+@pytest.mark.parametrize("top_number", [1, 2, 3])
+def test_split_artist_release_percentage_different_top_numbers(sample_collection, top_number):
+    result = split_artist_release_percentage(sample_collection, top_number)
+    
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) <= top_number + 1  # Top N + possibly Others
+    assert result['Percentage'].sum() == pytest.approx(100)
+
+def test_split_artist_release_percentage_single_artist():
+    single_artist_collection = [
+        {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
+        {'Artist': 'Artist A', 'album': 'Album 2', 'genre': 'Rock', 'release_year': 2005},
+    ]
+    result = split_artist_release_percentage(single_artist_collection, 3)
+    
+    assert len(result) == 1
+    assert result['Artist'].tolist() == ['Artist A']
+    assert result['Percentage'].values[0] == pytest.approx(100)
 
 if __name__ == '__main__':
     pytest.main()

@@ -1,6 +1,6 @@
-import requests
+import requests, json, os
 from apicurl.user_auth import get_user_credentials
-import json
+from datetime import datetime, timedelta
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -102,5 +102,20 @@ def process_collection(collection):  # Process a collection of Discogs releases.
     return collection_info  # Return the processed collection
 
 def save_collection_to_json(collection, filepath):
+    # Check if the collection is JSON serializable
+    try:
+        json.dumps(collection)
+    except TypeError:
+        raise TypeError("The provided collection is not JSON serializable")
+
+    if os.path.exists(filepath):
+        file_mod_time = datetime.fromtimestamp(os.path.getmtime(filepath))
+        if datetime.now() - file_mod_time < timedelta(hours=24):
+            return False  # File exists and is less than 24 hours old
+    
     with open(filepath, 'w') as f:
         json.dump(collection, f)
+    return True  # File was successfully written
+
+def split_artist_release_percentage():
+    return
