@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch, Mock
 import pytest
 from apicurl.user_auth import get_user_credentials
-from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection
+from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -123,6 +123,86 @@ def test_save_collection_to_json():
         data = json.load(f)
     
     assert data == collection
+
+def test_save_collection_to_json():
+    # Test case 1: Save a dictionary
+    collection = {"key1": "value1", "key2": "value2"}
+    filepath = "test_dict.json"
+    
+    save_collection_to_json(collection, filepath)
+    
+    assert os.path.exists(filepath)
+    with open(filepath, 'r') as f:
+        loaded_data = json.load(f)
+    assert loaded_data == collection
+    
+    os.remove(filepath)
+
+    # Test case 2: Save a list
+    collection = [1, 2, 3, 4, 5]
+    filepath = "data/test_list.json"
+    
+    save_collection_to_json(collection, filepath)
+    
+    assert os.path.exists(filepath)
+    with open(filepath, 'r') as f:
+        loaded_data = json.load(f)
+    assert loaded_data == collection
+    
+    os.remove(filepath)
+
+def test_save_collection_to_json_nested():
+    # Test case 3: Save a nested structure
+    collection = {
+        "name": "John Doe",
+        "age": 30,
+        "address": {
+            "street": "123 Main St",
+            "city": "Anytown",
+            "zipcode": "12345"
+        },
+        "hobbies": ["reading", "cycling", "photography"]
+    }
+    filepath = "data/test_nested.json"
+    
+    save_collection_to_json(collection, filepath)
+    
+    assert os.path.exists(filepath)
+    with open(filepath, 'r') as f:
+        loaded_data = json.load(f)
+    assert loaded_data == collection
+    
+    os.remove(filepath)
+
+def test_save_collection_to_json_empty():
+    # Test case 4: Save an empty collection
+    collection = {}
+    filepath = "data/test_empty.json"
+    
+    save_collection_to_json(collection, filepath)
+    
+    assert os.path.exists(filepath)
+    with open(filepath, 'r') as f:
+        loaded_data = json.load(f)
+    assert loaded_data == collection
+    
+    os.remove(filepath)
+
+def test_save_collection_to_json_file_error():
+    # Test case 5: Test file write permission error
+    collection = {"key": "value"}
+    filepath = "/var/test.json"  # Assuming no write permission in /root
+    
+    with pytest.raises(PermissionError):
+        save_collection_to_json(collection, filepath)
+
+def test_save_collection_to_json_invalid_json():
+    # Test case 6: Test with non-JSON serializable data
+    collection = {"key": set([1, 2, 3])}  # set is not JSON serializable
+    filepath = "data/test_invalid.json"
+    
+    with pytest.raises(TypeError):
+        save_collection_to_json(collection, filepath)
 
 if __name__ == '__main__':
     pytest.main()

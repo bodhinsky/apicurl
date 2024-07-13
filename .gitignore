@@ -1,5 +1,6 @@
 /.pytest_cache
 keys.cfg
+.vscode
 swe_agent_output*
 .ld
 .DS_Store
@@ -7,3 +8,4 @@ dist/
 **/__pycache__/
 providers
 backups
+data/
