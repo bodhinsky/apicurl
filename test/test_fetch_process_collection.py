@@ -335,7 +335,7 @@ def sample_percentage_dataframe():
         'Percentage': [50, 30, 20]
     })
 
-def test_visualize_artist_release_percentage_normal(sample_dataframe):
+def test_visualize_artist_release_percentage_normal(sample_percentage_dataframe):
     with patch('matplotlib.pyplot.figure') as mock_figure, \
          patch('matplotlib.pyplot.pie') as mock_pie, \
          patch('matplotlib.pyplot.title') as mock_title, \
@@ -355,7 +355,7 @@ def test_visualize_artist_release_percentage_empty_dataframe():
 
 def test_visualize_artist_release_percentage_missing_columns():
     invalid_df = pd.DataFrame({'Artist': ['A', 'B'], 'InvalidColumn': [1, 2]})
-    with pytest.raises(ValueError, match="The dataframe must contain the following columns: {'Artist', 'Percentage'}"):
+    with pytest.raises(ValueError, match=r"The dataframe must contain the following columns: \{('Artist', 'Percentage'|'Percentage', 'Artist')\}"):
         visualize_artist_release_percentage(invalid_df)
 
 @pytest.mark.parametrize("test_df", [
