@@ -2,12 +2,14 @@ import os
 from unittest.mock import patch, Mock
 import pytest
 from apicurl.user_auth import get_user_credentials
-from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection
+from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge
 from io import BytesIO,StringIO
+from datetime import datetime, timedelta
+from freezegun import freeze_time
 
 @pytest.fixture
 def sample_collection():
@@ -176,6 +178,88 @@ def test_save_collection_to_json_invalid_json():
     # Test case 6: Test with non-JSON serializable data
     collection = {"key": set([1, 2, 3])}  # set is not JSON serializable
     filepath = "data/test_invalid.json"
+    
+    with pytest.raises(TypeError):
+        save_collection_to_json(collection, filepath)
+
+
+def test_save_collection_new_file(sample_collection, tmp_path):
+    filepath = tmp_path / "test.json"
+    
+    result = save_collection_to_json(sample_collection, filepath)
+    
+    assert result == True
+    assert os.path.exists(filepath)
+    with open(filepath, 'r') as f:
+        loaded_data = json.load(f)
+    assert loaded_data == sample_collection
+
+def test_save_collection_overwrite_old_file(sample_collection, tmp_path):
+    filepath = tmp_path / "test.json"
+    
+    # Create an initial file
+    with open(filepath, 'w') as f:
+        json.dump({"old": "data"}, f)
+    
+    # Set file modification time to 25 hours ago
+    old_time = datetime.now() - timedelta(hours=25)
+    os.utime(filepath, (old_time.timestamp(), old_time.timestamp()))
+    
+    result = save_collection_to_json(sample_collection, filepath)
+    
+    assert result == True
+    with open(filepath, 'r') as f:
+        loaded_data = json.load(f)
+    assert loaded_data == sample_collection
+
+def test_save_collection_do_not_overwrite_recent_file(sample_collection, tmp_path):
+    filepath = tmp_path / "test.json"
+    
+    # Create an initial file
+    initial_data = {"old": "data"}
+    with open(filepath, 'w') as f:
+        json.dump(initial_data, f)
+    
+    # Set file modification time to 23 hours ago
+    old_time = datetime.now() - timedelta(hours=23)
+    os.utime(filepath, (old_time.timestamp(), old_time.timestamp()))
+    
+    result = save_collection_to_json(sample_collection, filepath)
+    
+    assert result == False
+    with open(filepath, 'r') as f:
+        loaded_data = json.load(f)
+    assert loaded_data == initial_data
+
+@freeze_time("2023-01-01 12:00:00")
+def test_save_collection_exact_24_hours(sample_collection, tmp_path):
+    filepath = tmp_path / "test.json"
+    
+    # Create an initial file
+    initial_data = {"old": "data"}
+    with open(filepath, 'w') as f:
+        json.dump(initial_data, f)
+    
+    # Set file modification time to exactly 24 hours ago
+    old_time = datetime.now() - timedelta(hours=24)
+    os.utime(filepath, (old_time.timestamp(), old_time.timestamp()))
+    
+    result = save_collection_to_json(sample_collection, filepath)
+    
+    assert result == True
+    with open(filepath, 'r') as f:
+        loaded_data = json.load(f)
+    assert loaded_data == sample_collection
+
+def test_save_collection_file_error(sample_collection, tmp_path):
+    filepath = tmp_path / "nonexistent_dir" / "test.json"
+    
+    with pytest.raises(FileNotFoundError):
+        save_collection_to_json(sample_collection, filepath)
+
+def test_save_collection_invalid_json(tmp_path):
+    collection = {"key": set([1, 2, 3])}  # set is not JSON serializable
+    filepath = tmp_path / "test.json"
     
     with pytest.raises(TypeError):
         save_collection_to_json(collection, filepath)
