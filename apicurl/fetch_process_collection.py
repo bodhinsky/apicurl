@@ -144,16 +144,4 @@ def visualize_artist_release_percentage(dataframe):
         plt.show()
 
 def list_artist_releases(collection, artist=None):
-    # Convert collection to a DataFrame
-    df = pd.DataFrame(collection)
-    
-    if artist:
-        # Filter the DataFrame by the specified artist
-        df = df[df['Artist'] == artist]
-    
-    if df.empty:
-        print("No releases found.")
-    else:
-        # Print the DataFrame as a table
-        print(df.to_string(index=False))
-    return df
+    return
