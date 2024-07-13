@@ -10,23 +10,11 @@ def fetch_and_process():
 
 
 if __name__ == "__main__":
-    pre_collection = False
-    collection_path = 'data/Collection.json'
+    release_collection_db = fetch_and_process()
 
-    if os.path.exists(collection_path):
-        with open(collection_path) as json_file:
-            collection = json.load(json_file)
-            pre_collection = True
+    print("Saving to file.")
+    with open('data/Collection.json', 'w') as json_file:
+        json.dump(release_collection_db, json_file)
+        print("Saved collection data to file.")
 
-        release_collection_db = collection
-
-    else:
-        print("No previous collection data found. Fetching...")
-        release_collection_db = fetch_and_process()
-
-        print("Saving to file.")
-        with open('data/Collection.json', 'w') as json_file:
-            json.dump(release_collection_db, json_file)
-            print("Saved collection data to file.")
-
-            print("Fetched and processed collection data.")
+        print("Fetched and processed collection data.")

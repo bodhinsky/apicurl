@@ -100,8 +100,3 @@ def process_collection(collection):  # Process a collection of Discogs releases.
     
     return collection_info  # Return the processed collection
 
-def split_artist_release_percentage(collection, top_number):
-    return
-
-def visualize_artist_release_percentage(dataframe):
-    return
