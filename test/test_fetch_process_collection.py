@@ -394,8 +394,8 @@ def test_visualize_artist_release_percentage_plot_details(sample_dataframe):
         
         # Check pie chart details
         args, kwargs = mock_pie.call_args
-        assert (args[0] == sample_dataframe['Percentage']).all()
-        assert (kwargs['labels'] == sample_dataframe['Artist']).all()
+        assert (args[0] == sample_percentage_dataframe['Percentage']).all()
+        assert (kwargs['labels'] == sample_percentage_dataframe['Artist']).all()
         assert kwargs['autopct'] == '%1.1f%%'
         assert kwargs['startangle'] == 140
         
