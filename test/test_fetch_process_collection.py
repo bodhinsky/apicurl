@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch, Mock
 import pytest
 from apicurl.user_auth import get_user_credentials
-from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json
+from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
