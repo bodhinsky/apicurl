@@ -2,11 +2,11 @@ import os
 from unittest.mock import patch, Mock
 import pytest
 from apicurl.user_auth import get_user_credentials
-from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, split_artist_release_percentage, visualize_artist_release_percentage
+from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, split_artist_release_percentage, visualize_artist_release_percentage, list_artist_releases
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge
-from io import BytesIO
+from io import BytesIO,StringIO
 
 # Set the Agg backend for matplotlib
 plt.switch_backend('Agg')
@@ -176,6 +176,52 @@ def test_split_artist_release_percentage(mock_split, sample_collection):
     result = split_artist_release_percentage(empty_df, 0)
     assert result is None
 
+def test_list_all_releases(capfd):
+    collection = [
+        {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
+        {'Artist': 'Artist B', 'album': 'Album 2', 'genre': 'Jazz', 'release_year': 2005},
+        {'Artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
+        {'Artist': 'Artist C', 'album': 'Album 4', 'genre': 'Pop', 'release_year': 2015},
+    ]
+    
+    df = list_artist_releases(collection)
+    captured = capfd.readouterr()
+    expected_df = pd.DataFrame(collection)
+    
+    assert captured.out.strip() != "No releases found."
+    pd.testing.assert_frame_equal(df.reset_index(drop=True), expected_df)
+
+def test_list_artist_releases(capfd):
+    collection = [
+        {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
+        {'Artist': 'Artist B', 'album': 'Album 2', 'genre': 'Jazz', 'release_year': 2005},
+        {'Artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
+        {'Artist': 'Artist C', 'album': 'Album 4', 'genre': 'Pop', 'release_year': 2015},
+    ]
+    
+    df = list_artist_releases(collection, artist='Artist A')
+    captured = capfd.readouterr()
+    expected_df = pd.DataFrame([
+        {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
+        {'Artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
+    ])
+    
+    assert captured.out.strip() != "No releases found."
+    pd.testing.assert_frame_equal(df.reset_index(drop=True), expected_df)
+
+def test_list_artist_releases_no_artist_found(capfd):
+    collection = [
+        {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
+        {'Artist': 'Artist B', 'album': 'Album 2', 'genre': 'Jazz', 'release_year': 2005},
+        {'Artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
+        {'Artist': 'Artist C', 'album': 'Album 4', 'genre': 'Pop', 'release_year': 2015},
+    ]
+    
+    df = list_artist_releases(collection, artist='Artist D')
+    captured = capfd.readouterr()
+    
+    assert df.empty
+    assert captured.out.strip() == "No releases found."
 
 if __name__ == '__main__':
     pytest.main()

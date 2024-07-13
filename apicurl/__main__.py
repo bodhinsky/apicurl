@@ -1,6 +1,6 @@
 import os
 import json
-from apicurl.fetch_process_collection import fetch_all_collection_pages, process_collection,split_artist_release_percentage,visualize_artist_release_percentage
+from apicurl.fetch_process_collection import fetch_all_collection_pages, process_collection,split_artist_release_percentage,visualize_artist_release_percentage,list_artist_releases
 
 def fetch_and_process():
     dc_all_releases = fetch_all_collection_pages()
@@ -35,7 +35,6 @@ if __name__ == "__main__":
     ### Another issue
     print("Splitting data into n top artists and others")
     artist_percentages = split_artist_release_percentage(release_collection_db, top_number=10)
-    print(type(artist_percentages))
     print("Visualize percentages of artists")
     visualize_artist_release_percentage(artist_percentages)
-    #print(json.dumps(release_collection_db, indent=4))
+    list_artist_releases(release_collection_db)
