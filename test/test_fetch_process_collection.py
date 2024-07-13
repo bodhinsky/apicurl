@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch, Mock
 import pytest
 from apicurl.user_auth import get_user_credentials
-from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage, visualize_artist_release_percentage
+from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage, visualize_artist_release_percentage, list_artist_releases
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -401,6 +401,87 @@ def test_visualize_artist_release_percentage_plot_details(sample_percentage_data
         
         # Check title
         mock_title.assert_called_once_with('Percentage of Music Releases by Artist')
+
+def test_list_artist_releases_all(sample_collection, capsys):
+    result = list_artist_releases(sample_collection)
+    
+    captured = capsys.readouterr()
+    assert "Artist A" in captured.out
+    assert "Artist B" in captured.out
+    assert "Artist C" in captured.out
+    assert "Album 1" in captured.out
+    assert "Album 2" in captured.out
+    assert "Album 3" in captured.out
+    assert "Album 4" in captured.out
+    
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == 4
+
+def test_list_artist_releases_specific_artist(sample_collection, capsys):
+    result = list_artist_releases(sample_collection, artist="Artist A")
+    
+    captured = capsys.readouterr()
+    assert "Artist A" in captured.out
+    assert "Album 1" in captured.out
+    assert "Album 3" in captured.out
+    assert "Artist B" not in captured.out
+    assert "Artist C" not in captured.out
+    
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == 2
+
+def test_list_artist_releases_nonexistent_artist(sample_collection, capsys):
+    result = list_artist_releases(sample_collection, artist="Nonexistent Artist")
+    
+    captured = capsys.readouterr()
+    assert "No releases found." in captured.out
+    
+    assert isinstance(result, pd.DataFrame)
+    assert result.empty
+
+def test_list_artist_releases_empty_collection(capsys):
+    result = list_artist_releases([])
+    
+    captured = capsys.readouterr()
+    assert "No releases found." in captured.out
+    
+    assert isinstance(result, pd.DataFrame)
+    assert result.empty
+
+def test_list_artist_releases_output_format(sample_collection, capsys):
+    list_artist_releases(sample_collection)
+    
+    captured = capsys.readouterr()
+    # Check if the output is formatted as a table
+    assert "Artist" in captured.out
+    assert "Album" in captured.out
+    assert "Genre" in captured.out
+    assert "Release Year" in captured.out
+    
+    # Check if the data is aligned in columns
+    lines = captured.out.strip().split('\n')
+    assert len(set(len(line) for line in lines)) == 1  # All lines should have the same length
+
+def test_list_artist_releases_return_value(sample_collection):
+    result = list_artist_releases(sample_collection)
+    
+    assert isinstance(result, pd.DataFrame)
+    assert set(result.columns) == {'Artist', 'Album', 'Genre', 'Release Year'}
+    assert len(result) == 4
+
+@pytest.mark.parametrize("artist, expected_count", [
+    ("Artist A", 2),
+    ("Artist B", 1),
+    ("Artist C", 1),
+    ("Nonexistent Artist", 0),
+])
+def test_list_artist_releases_various_artists(sample_collection, artist, expected_count):
+    result = list_artist_releases(sample_collection, artist=artist)
+    
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == expected_count
+    if expected_count > 0:
+        assert all(result['Artist'] == artist)
 
 if __name__ == '__main__':
     pytest.main()
