@@ -2,65 +2,12 @@ import os
 from unittest.mock import patch, Mock
 import pytest
 from apicurl.user_auth import get_user_credentials
-from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, split_artist_release_percentage, visualize_artist_release_percentage, list_artist_releases
+from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection
+import json
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge
 from io import BytesIO,StringIO
-
-# Set the Agg backend for matplotlib
-plt.switch_backend('Agg')
-
-@pytest.fixture
-def valid_dataframe():
-    return pd.DataFrame({
-        'Artist': ['Artist A', 'Artist B', 'Artist C'],
-        'Percentage': [40, 30, 30]
-    })
-
-@pytest.fixture
-def empty_dataframe():
-    return pd.DataFrame({
-        'Artist': [],
-        'Percentage': []
-    })
-
-@pytest.fixture
-def invalid_dataframe():
-    return pd.DataFrame({
-        'Artist': ['Artist A', 'Artist B', 'Artist C'],
-        'Percent': [40, 30, 30]
-    })
-
-
-def test_valid_dataframe(valid_dataframe):
-    try:
-        visualize_artist_release_percentage(valid_dataframe)
-    except Exception as e:
-        pytest.fail(f"visualize_artist_release_percentage raised an exception with valid dataframe: {e}")
-
-def test_empty_dataframe(empty_dataframe):
-    with pytest.raises(ValueError):
-        visualize_artist_release_percentage(empty_dataframe)
-
-def test_invalid_dataframe(invalid_dataframe):
-    with pytest.raises(ValueError):
-        visualize_artist_release_percentage(invalid_dataframe)
-
-def test_plot_creation(valid_dataframe):
-    plt.ioff()  # Turn off interactive mode to prevent plot from showing
-
-    visualize_artist_release_percentage(valid_dataframe)
-    
-    fig = plt.gcf()  # Get current figure
-    ax = fig.gca()
-    wedges = [patch for patch in ax.patches if isinstance(patch, Wedge)]
-
-    plt.close(fig)  # Close the figure after capturing its content
-
-    # Ensure the plot has wedges (pie slices)
-    assert len(wedges) == len(valid_dataframe), "Plot was not created correctly."
-
 
 @pytest.fixture
 def sample_collection():
@@ -153,30 +100,8 @@ def test_process_collection_valid():
     result = process_collection(collection)
     assert result == expected_result
 
-@patch('apicurl.fetch_process_collection.split_artist_release_percentage')
-def test_split_artist_release_percentage(mock_split, sample_collection):
-    # Mock setup
-    artist_release_percentage = pd.DataFrame({
-        'Artist': ['Artist A', 'Artist B', 'Artist C'],
-        'Percentage': [50.0, 25.0, 25.0]
-    })
-    mock_split.return_value = artist_release_percentage
-
-    # Call the function
-    result = split_artist_release_percentage(sample_collection, top_number=3)
-
-    # Assertions
-    assert isinstance(result, pd.DataFrame)
-    assert 'Artist' in result.columns
-    assert 'Percentage' in result.columns
-    pd.testing.assert_frame_equal(result, artist_release_percentage)
-
-    # Edge case: Empty dataframe
-    empty_df = pd.DataFrame(columns=['Artist', 'releases'])
-    result = split_artist_release_percentage(empty_df, 0)
-    assert result is None
-
-def test_list_all_releases(capfd):
+def test_save_collection_to_json():
+    # Example collection
     collection = [
         {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
         {'Artist': 'Artist B', 'album': 'Album 2', 'genre': 'Jazz', 'release_year': 2005},
@@ -184,44 +109,20 @@ def test_list_all_releases(capfd):
         {'Artist': 'Artist C', 'album': 'Album 4', 'genre': 'Pop', 'release_year': 2015},
     ]
     
-    df = list_artist_releases(collection)
-    captured = capfd.readouterr()
-    expected_df = pd.DataFrame(collection)
+    # Filepath in the temporary directory
+    json_filepath = "data/Collection.json"
     
-    assert captured.out.strip() != "No releases found."
-    pd.testing.assert_frame_equal(df.reset_index(drop=True), expected_df)
-
-def test_list_artist_releases(capfd):
-    collection = [
-        {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
-        {'Artist': 'Artist B', 'album': 'Album 2', 'genre': 'Jazz', 'release_year': 2005},
-        {'Artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
-        {'Artist': 'Artist C', 'album': 'Album 4', 'genre': 'Pop', 'release_year': 2015},
-    ]
+    # Call the function to save the collection to JSON
+    save_collection_to_json(collection, json_filepath)
     
-    df = list_artist_releases(collection, artist='Artist A')
-    captured = capfd.readouterr()
-    expected_df = pd.DataFrame([
-        {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
-        {'Artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
-    ])
+    # Check if the file was created
+    assert os.path.exists(json_filepath)
     
-    assert captured.out.strip() != "No releases found."
-    pd.testing.assert_frame_equal(df.reset_index(drop=True), expected_df)
-
-def test_list_artist_releases_no_artist_found(capfd):
-    collection = [
-        {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
-        {'Artist': 'Artist B', 'album': 'Album 2', 'genre': 'Jazz', 'release_year': 2005},
-        {'Artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
-        {'Artist': 'Artist C', 'album': 'Album 4', 'genre': 'Pop', 'release_year': 2015},
-    ]
+    # Read the file and check its contents
+    with open(json_filepath, 'r') as f:
+        data = json.load(f)
     
-    df = list_artist_releases(collection, artist='Artist D')
-    captured = capfd.readouterr()
-    
-    assert df.empty
-    assert captured.out.strip() == "No releases found."
+    assert data == collection
 
 if __name__ == '__main__':
     pytest.main()
