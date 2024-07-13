@@ -3,7 +3,6 @@ from apicurl.user_auth import get_user_credentials
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from tabulate import tabulate
 
 def get_user_collection(page=1):
     """
@@ -156,5 +155,5 @@ def list_artist_releases(collection, artist=None):
         print("No releases found.")
     else:
         # Print the DataFrame as a table
-        print(tabulate(df, headers='keys', tablefmt='plain', showindex=False))
+        print(df.to_string(index=False))
     return df
