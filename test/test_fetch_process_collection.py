@@ -381,7 +381,7 @@ def test_visualize_artist_release_percentage_various_inputs(test_df):
         assert (args[0] == test_df['Percentage']).all()
         assert (kwargs['labels'] == test_df['Artist']).all()
 
-def test_visualize_artist_release_percentage_plot_details(sample_dataframe):
+def test_visualize_artist_release_percentage_plot_details(sample_percentage_dataframe):
     with patch('matplotlib.pyplot.figure') as mock_figure, \
          patch('matplotlib.pyplot.pie') as mock_pie, \
          patch('matplotlib.pyplot.title') as mock_title, \
