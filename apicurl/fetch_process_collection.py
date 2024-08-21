@@ -102,5 +102,7 @@ def process_collection(collection):  # Process a collection of Discogs releases.
     return collection_info  # Return the processed collection
 
 def save_collection_to_json(collection, filepath):
+    if collection is not json:
+        return False
     with open(filepath, 'w') as f:
         json.dump(collection, f)
