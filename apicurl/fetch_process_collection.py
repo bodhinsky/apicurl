@@ -100,3 +100,7 @@ def process_collection(collection):  # Process a collection of Discogs releases.
         })
     
     return collection_info  # Return the processed collection
+
+def save_collection_to_json(collection):
+    json.dump(collection)
+    print("Collection stored successfully")
