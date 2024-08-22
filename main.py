@@ -16,3 +16,4 @@ if __name__ == "__main__":
     print(top_k_artists)
     visualize_artist_release_percentage(top_k_artists)
     artist_df = list_artist_releases(release_collection_db, "Biffy Clyro")
+    print_unique(release_collection_db)
