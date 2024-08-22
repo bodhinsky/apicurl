@@ -20,7 +20,7 @@ def get_user_credentials(service: str) -> tuple:
     """
 
     user_name = os.getenv(f'{service.upper()}_USER_NAME')
-    user_secret = os.getenv(f'{service.upper()}_USER_SECRET')
+    user_secret = os.getenv(f'{service.upper()}_USER_TOKEN')
 
     if user_name is None:
         raise EnvironmentError(f"Environment variable {service.upper()}_USER_NAME is not set.")
