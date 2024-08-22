@@ -24,7 +24,7 @@ def sample_collection():
 @patch('apicurl.user_auth.get_user_credentials')
 @patch.dict(os.environ, {
     'DISCOGS_USER_NAME': 'abc123',
-    'DISCOGS_USER_SECRET': 'def456'
+    'DISCOGS_USER_TOKEN': 'def456'
 })
 def test_get_user_collection_success(mock_get_user_credentials, mock_get):
     # Setup mock responses
