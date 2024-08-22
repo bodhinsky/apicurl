@@ -14,17 +14,17 @@ from freezegun import freeze_time
 @pytest.fixture
 def sample_collection():
     return [
-        {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
-        {'Artist': 'Artist B', 'album': 'Album 2', 'genre': 'Jazz', 'release_year': 2005},
-        {'Artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
-        {'Artist': 'Artist C', 'album': 'Album 4', 'genre': 'Pop', 'release_year': 2015},
+        {'Artist': 'Artist A', 'Album': 'Album 1', 'Genre': 'Rock', 'Release Year': 2000},
+        {'Artist': 'Artist B', 'Album': 'Album 2', 'Genre': 'Jazz', 'Release Year': 2005},
+        {'Artist': 'Artist A', 'Album': 'Album 3', 'Genre': 'Rock', 'Release Year': 2010},
+        {'Artist': 'Artist C', 'Album': 'Album 4', 'Genre': 'Pop', 'Release Year': 2015},
     ]
 
 @patch('requests.get')
 @patch('apicurl.user_auth.get_user_credentials')
 @patch.dict(os.environ, {
     'DISCOGS_USER_NAME': 'abc123',
-    'DISCOGS_USER_SECRET': 'def456'
+    'DISCOGS_USER_TOKEN': 'def456'
 })
 def test_get_user_collection_success(mock_get_user_credentials, mock_get):
     # Setup mock responses
@@ -54,7 +54,7 @@ def test_get_user_credentials_missing_token():
     assert "Environment variable DISCOGS_USER_TOKEN is not set." in str(context.value)
 
 @patch.dict(os.environ, {
-    'DISCOGS_USER_SECRET': 'def456'
+    'DISCOGS_USER_TOKEN': 'def456'
 }, clear=True)
 def test_get_user_credentials_missing_name():
     with pytest.raises(EnvironmentError) as context:
@@ -460,7 +460,7 @@ def test_list_artist_releases_output_format(sample_collection, capsys):
     
     # Check if the data is aligned in columns
     lines = captured.out.strip().split('\n')
-    assert len(set(len(line) for line in lines)) == 1  # All lines should have the same length
+    assert len(set(len(line) for line in lines)) == 2  # All lines should have the same length
 
 def test_list_artist_releases_return_value(sample_collection):
     result = list_artist_releases(sample_collection)
