@@ -182,9 +182,8 @@ def test_save_collection_to_json_invalid_json():
     with pytest.raises(TypeError):
         save_collection_to_json(collection, filepath)
 
-
 def test_save_collection_new_file(sample_collection, tmp_path):
-    filepath = tmp_path / "test.json"
+    filepath = "data/new_file.json"
     
     result = save_collection_to_json(sample_collection, filepath)
     
@@ -195,7 +194,7 @@ def test_save_collection_new_file(sample_collection, tmp_path):
     assert loaded_data == sample_collection
 
 def test_save_collection_overwrite_old_file(sample_collection, tmp_path):
-    filepath = tmp_path / "test.json"
+    filepath = "data/overwrite_old.json"
     
     # Create an initial file
     with open(filepath, 'w') as f:
@@ -212,8 +211,11 @@ def test_save_collection_overwrite_old_file(sample_collection, tmp_path):
         loaded_data = json.load(f)
     assert loaded_data == sample_collection
 
+    os.remove(filepath)
+
+
 def test_save_collection_do_not_overwrite_recent_file(sample_collection, tmp_path):
-    filepath = tmp_path / "test.json"
+    filepath = "data/not_overwrite_recent.json"
     
     # Create an initial file
     initial_data = {"old": "data"}
@@ -231,9 +233,11 @@ def test_save_collection_do_not_overwrite_recent_file(sample_collection, tmp_pat
         loaded_data = json.load(f)
     assert loaded_data == initial_data
 
+    os.remove(filepath)
+
 @freeze_time("2023-01-01 12:00:00")
 def test_save_collection_exact_24_hours(sample_collection, tmp_path):
-    filepath = tmp_path / "test.json"
+    filepath = "data/exact_day.json"
     
     # Create an initial file
     initial_data = {"old": "data"}
@@ -250,16 +254,17 @@ def test_save_collection_exact_24_hours(sample_collection, tmp_path):
     with open(filepath, 'r') as f:
         loaded_data = json.load(f)
     assert loaded_data == sample_collection
+    os.remove(filepath)
 
 def test_save_collection_file_error(sample_collection, tmp_path):
-    filepath = tmp_path / "nonexistent_dir" / "test.json"
+    filepath = "data/nonexistent_dir/test.json"
     
     with pytest.raises(FileNotFoundError):
         save_collection_to_json(sample_collection, filepath)
 
 def test_save_collection_invalid_json(tmp_path):
     collection = {"key": set([1, 2, 3])}  # set is not JSON serializable
-    filepath = tmp_path / "test.json"
+    filepath = "data/test.json"
     
     with pytest.raises(TypeError):
         save_collection_to_json(collection, filepath)

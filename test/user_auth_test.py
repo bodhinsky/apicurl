@@ -9,7 +9,7 @@ from apicurl.user_auth import get_user_credentials, get_user_auth_token
 class TestUserAuth(unittest.TestCase):
     @patch.dict(os.environ, {
         'SPOTIFY_USER_NAME': 'abc123',
-        'SPOTIFY_USER_SECRET': 'def456'
+        'SPOTIFY_USER_TOKEN': 'def456'
     })
     def test_get_user_credentials_success(self):
         # Test successful retrieval of credentials

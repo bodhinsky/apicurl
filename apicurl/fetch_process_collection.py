@@ -117,5 +117,42 @@ def save_collection_to_json(collection, filepath):
         json.dump(collection, f)
     return True  # File was successfully written
 
-def split_artist_release_percentage():
-    return
+def split_artist_release_percentage(collection, top_k):
+    artist_column = 'Artist'
+
+    if not isinstance(collection, list):
+        raise ValueError("The collection must be a list of dictionaries representing rows.")
+    
+    # Convert the JSON list to a DataFrame
+    df = pd.DataFrame(collection)
+    
+    # Check if the artist column exists
+    if artist_column not in collection.columns:
+        raise ValueError(f"The specified column '{artist_column}' does not exist in the DataFrame.")
+    
+    # Step 1: Count the number of releases per artist
+    artist_counts = collection[artist_column].value_counts().reset_index()
+    artist_counts.columns = [artist_column, 'Count']
+    
+    # Step 2: Calculate the percentage of releases for each artist
+    total_releases = artist_counts['Count'].sum()
+    artist_counts['Percentage'] = (artist_counts['Count'] / total_releases) * 100
+    
+    # Step 3: Sort the DataFrame by release percentage in descending order
+    artist_counts = artist_counts.sort_values(by='Percentage', ascending=False)
+    
+    # Step 4: Select the top_k artists
+    top_k_df = artist_counts.head(top_k).copy()
+    
+    # Step 5: Consolidate the remaining artists into one row as "Others"
+    if len(artist_counts) > top_k:
+        others_df = artist_counts.iloc[top_k:].copy()
+        others_row = pd.DataFrame({
+            artist_column: ['Others'],
+            'Count': [others_df['Count'].sum()],
+            'Percentage': [others_df['Percentage'].sum()]
+        })
+        # Append the "Others" row to the top_k DataFrame
+        top_k_df = pd.concat([top_k_df, others_row], ignore_index=True)
+    
+    return top_k_df
