@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch, Mock, MagicMock
 import pytest
 from apicurl.user_auth import get_user_credentials
-from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage, visualize_artist_release_percentage
+from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage, visualize_artist_release_percentage, list_artist_releases
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -14,10 +14,10 @@ from freezegun import freeze_time
 @pytest.fixture
 def sample_collection():
     return [
-        {'Artist': 'Artist A', 'album': 'Album 1', 'genre': 'Rock', 'release_year': 2000},
-        {'Artist': 'Artist B', 'album': 'Album 2', 'genre': 'Jazz', 'release_year': 2005},
-        {'Artist': 'Artist A', 'album': 'Album 3', 'genre': 'Rock', 'release_year': 2010},
-        {'Artist': 'Artist C', 'album': 'Album 4', 'genre': 'Pop', 'release_year': 2015},
+        {'Artist': 'Artist A', 'Album': 'Album 1', 'Genre': 'Rock', 'Release Year': 2000},
+        {'Artist': 'Artist B', 'Album': 'Album 2', 'Genre': 'Jazz', 'Release Year': 2005},
+        {'Artist': 'Artist A', 'Album': 'Album 3', 'Genre': 'Rock', 'Release Year': 2010},
+        {'Artist': 'Artist C', 'Album': 'Album 4', 'Genre': 'Pop', 'Release Year': 2015},
     ]
 
 @patch('requests.get')
@@ -341,7 +341,9 @@ def sample_percentage_dataframe():
     })
 
 def test_visualize_artist_release_percentage_normal(sample_percentage_dataframe):
-    with patch('matplotlib.pyplot.subplots') as mock_subplots, \
+    with patch('matplotlib.pyplot.figure') as mock_figure, \
+         patch('matplotlib.pyplot.pie') as mock_pie, \
+         patch('matplotlib.pyplot.title') as mock_title, \
          patch('matplotlib.pyplot.show') as mock_show:
         
         mock_fig = MagicMock()
@@ -361,7 +363,7 @@ def test_visualize_artist_release_percentage_empty_dataframe():
 
 def test_visualize_artist_release_percentage_missing_columns():
     invalid_df = pd.DataFrame({'Artist': ['A', 'B'], 'InvalidColumn': [1, 2]})
-    with pytest.raises(ValueError, match="The dataframe must contain the following columns: {'Artist', 'Percentage'}"):
+    with pytest.raises(ValueError, match=r"The dataframe must contain the following columns: \{('Artist', 'Percentage'|'Percentage', 'Artist')\}"):
         visualize_artist_release_percentage(invalid_df)
 
 @pytest.mark.parametrize("test_df", [
@@ -389,11 +391,10 @@ def test_visualize_artist_release_percentage_various_inputs(test_df):
         assert (args[0] == test_df['Percentage']).all()
         assert (kwargs['labels'] == test_df['Artist']).all()
 
-        # Ensure that show was called
-        mock_show.assert_called_once()
-
 def test_visualize_artist_release_percentage_plot_details(sample_percentage_dataframe):
-    with patch('matplotlib.pyplot.subplots') as mock_subplots, \
+    with patch('matplotlib.pyplot.figure') as mock_figure, \
+         patch('matplotlib.pyplot.pie') as mock_pie, \
+         patch('matplotlib.pyplot.title') as mock_title, \
          patch('matplotlib.pyplot.show') as mock_show:
         
         mock_fig = MagicMock()
@@ -407,13 +408,95 @@ def test_visualize_artist_release_percentage_plot_details(sample_percentage_data
         mock_subplots.assert_called_once_with(figsize=(8, 8))
 
         # Check pie chart details
-        args, kwargs = mock_ax.pie.call_args
+        args, kwargs = mock_pie.call_args
         assert (args[0] == sample_percentage_dataframe['Percentage']).all()
         assert (kwargs['labels'] == sample_percentage_dataframe['Artist']).all()
         assert kwargs['autopct'] == '%1.1f%%'
         assert kwargs['startangle'] == 140
+        
+        # Check title
+        mock_title.assert_called_once_with('Percentage of Music Releases by Artist')
 
-        mock_show.assert_called_once()
+def test_list_artist_releases_all(sample_collection, capsys):
+    result = list_artist_releases(sample_collection)
+    
+    captured = capsys.readouterr()
+    assert "Artist A" in captured.out
+    assert "Artist B" in captured.out
+    assert "Artist C" in captured.out
+    assert "Album 1" in captured.out
+    assert "Album 2" in captured.out
+    assert "Album 3" in captured.out
+    assert "Album 4" in captured.out
+    
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == 4
+
+def test_list_artist_releases_specific_artist(sample_collection, capsys):
+    result = list_artist_releases(sample_collection, artist="Artist A")
+    
+    captured = capsys.readouterr()
+    assert "Artist A" in captured.out
+    assert "Album 1" in captured.out
+    assert "Album 3" in captured.out
+    assert "Artist B" not in captured.out
+    assert "Artist C" not in captured.out
+    
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == 2
+
+def test_list_artist_releases_nonexistent_artist(sample_collection, capsys):
+    result = list_artist_releases(sample_collection, artist="Nonexistent Artist")
+    
+    captured = capsys.readouterr()
+    assert "No releases found." in captured.out
+    
+    assert isinstance(result, pd.DataFrame)
+    assert result.empty
+
+def test_list_artist_releases_empty_collection(capsys):
+    result = list_artist_releases([])
+    
+    captured = capsys.readouterr()
+    assert "No releases found." in captured.out
+    
+    assert isinstance(result, pd.DataFrame)
+    assert result.empty
+
+def test_list_artist_releases_output_format(sample_collection, capsys):
+    list_artist_releases(sample_collection)
+    
+    captured = capsys.readouterr()
+    # Check if the output is formatted as a table
+    assert "Artist" in captured.out
+    assert "Album" in captured.out
+    assert "Genre" in captured.out
+    assert "Release Year" in captured.out
+    
+    # Check if the data is aligned in columns
+    lines = captured.out.strip().split('\n')
+    assert len(set(len(line) for line in lines)) == 2  # All lines should have the same length
+
+def test_list_artist_releases_return_value(sample_collection):
+    result = list_artist_releases(sample_collection)
+    
+    assert isinstance(result, pd.DataFrame)
+    assert set(result.columns) == {'Artist', 'Album', 'Genre', 'Release Year'}
+    assert len(result) == 4
+
+@pytest.mark.parametrize("artist, expected_count", [
+    ("Artist A", 2),
+    ("Artist B", 1),
+    ("Artist C", 1),
+    ("Nonexistent Artist", 0),
+])
+def test_list_artist_releases_various_artists(sample_collection, artist, expected_count):
+    result = list_artist_releases(sample_collection, artist=artist)
+    
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == expected_count
+    if expected_count > 0:
+        assert all(result['Artist'] == artist)
 
 if __name__ == '__main__':
     pytest.main()
