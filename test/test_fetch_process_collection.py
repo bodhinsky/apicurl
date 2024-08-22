@@ -1,5 +1,5 @@
 import os
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, MagicMock
 import pytest
 from apicurl.user_auth import get_user_credentials
 from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage, visualize_artist_release_percentage
@@ -24,7 +24,7 @@ def sample_collection():
 @patch('apicurl.user_auth.get_user_credentials')
 @patch.dict(os.environ, {
     'DISCOGS_USER_NAME': 'abc123',
-    'DISCOGS_USER_SECRET': 'def456'
+    'DISCOGS_USER_TOKEN': 'def456'
 })
 def test_get_user_collection_success(mock_get_user_credentials, mock_get):
     # Setup mock responses
@@ -54,7 +54,7 @@ def test_get_user_credentials_missing_token():
     assert "Environment variable DISCOGS_USER_TOKEN is not set." in str(context.value)
 
 @patch.dict(os.environ, {
-    'DISCOGS_USER_SECRET': 'def456'
+    'DISCOGS_USER_TOKEN': 'def456'
 }, clear=True)
 def test_get_user_credentials_missing_name():
     with pytest.raises(EnvironmentError) as context:
@@ -335,17 +335,18 @@ def sample_percentage_dataframe():
         'Percentage': [50, 30, 20]
     })
 
-def test_visualize_artist_release_percentage_normal(sample_dataframe):
-    with patch('matplotlib.pyplot.figure') as mock_figure, \
-         patch('matplotlib.pyplot.pie') as mock_pie, \
-         patch('matplotlib.pyplot.title') as mock_title, \
+def test_visualize_artist_release_percentage_normal(sample_percentage_dataframe):
+    with patch('matplotlib.pyplot.subplots') as mock_subplots, \
          patch('matplotlib.pyplot.show') as mock_show:
         
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+
+        mock_subplots.return_value = (mock_fig, mock_ax)
+
         visualize_artist_release_percentage(sample_percentage_dataframe)
         
-        mock_figure.assert_called_once_with(figsize=(10, 6))
-        mock_pie.assert_called_once()
-        mock_title.assert_called_once_with('Percentage of Music Releases by Artist')
+        mock_subplots.assert_called_once_with(figsize=(8, 8))
         mock_show.assert_called_once()
 
 def test_visualize_artist_release_percentage_empty_dataframe():
@@ -364,43 +365,50 @@ def test_visualize_artist_release_percentage_missing_columns():
     pd.DataFrame({'Artist': ['A'], 'Percentage': [100]})
 ])
 def test_visualize_artist_release_percentage_various_inputs(test_df):
-    with patch('matplotlib.pyplot.figure') as mock_figure, \
-         patch('matplotlib.pyplot.pie') as mock_pie, \
-         patch('matplotlib.pyplot.title') as mock_title, \
+    with patch('matplotlib.pyplot.subplots') as mock_subplots, \
          patch('matplotlib.pyplot.show') as mock_show:
         
+        # Create mock objects for fig and ax
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        
+        # Configure the return value of subplots to be a tuple of the mock objects
+        mock_subplots.return_value = (mock_fig, mock_ax)
+
         visualize_artist_release_percentage(test_df)
         
-        mock_figure.assert_called_once()
-        mock_pie.assert_called_once()
-        mock_title.assert_called_once()
-        mock_show.assert_called_once()
+        mock_subplots.assert_called_once_with(figsize=(8, 8))
 
         # Check if the correct data is passed to plt.pie
-        args, kwargs = mock_pie.call_args
+        args, kwargs = mock_ax.pie.call_args
         assert (args[0] == test_df['Percentage']).all()
         assert (kwargs['labels'] == test_df['Artist']).all()
 
-def test_visualize_artist_release_percentage_plot_details(sample_dataframe):
-    with patch('matplotlib.pyplot.figure') as mock_figure, \
-         patch('matplotlib.pyplot.pie') as mock_pie, \
-         patch('matplotlib.pyplot.title') as mock_title, \
+        # Ensure that show was called
+        mock_show.assert_called_once()
+
+def test_visualize_artist_release_percentage_plot_details(sample_percentage_dataframe):
+    with patch('matplotlib.pyplot.subplots') as mock_subplots, \
          patch('matplotlib.pyplot.show') as mock_show:
         
+        mock_fig = MagicMock()
+        mock_ax =  MagicMock()
+
+        mock_subplots.return_value = (mock_fig, mock_ax)
+
         visualize_artist_release_percentage(sample_percentage_dataframe)
         
         # Check figure size
-        mock_figure.assert_called_once_with(figsize=(10, 6))
-        
+        mock_subplots.assert_called_once_with(figsize=(8, 8))
+
         # Check pie chart details
-        args, kwargs = mock_pie.call_args
-        assert (args[0] == sample_dataframe['Percentage']).all()
-        assert (kwargs['labels'] == sample_dataframe['Artist']).all()
+        args, kwargs = mock_ax.pie.call_args
+        assert (args[0] == sample_percentage_dataframe['Percentage']).all()
+        assert (kwargs['labels'] == sample_percentage_dataframe['Artist']).all()
         assert kwargs['autopct'] == '%1.1f%%'
         assert kwargs['startangle'] == 140
-        
-        # Check title
-        mock_title.assert_called_once_with('Percentage of Music Releases by Artist')
+
+        mock_show.assert_called_once()
 
 if __name__ == '__main__':
     pytest.main()

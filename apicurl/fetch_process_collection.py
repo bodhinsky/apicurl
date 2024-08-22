@@ -138,5 +138,23 @@ def split_artist_release_percentage(collection, top_number):
     else:
         return None
 
-def visualize_artist_release_percentage(collection):
-    return
+def visualize_artist_release_percentage(top_k_artists, title='Artist Release Percentage'):
+    """
+    Function to visualize the release percentage of artists using a pie chart.
+
+    Parameters:
+    - top_k_artists: A Pandas DataFrame with the artist release percentages.
+    - title: The title for the pie chart.
+
+    Returns:
+    - None. Displays the pie chart.
+    """
+    required_columns = ['Artist', 'Percentage']
+    if required_columns in top_k_artists:
+        # Plotting the pie chart
+        fig, ax = plt.subplots(figsize=(8, 8))  # Adjust this size as needed
+        
+        ax.pie(top_k_artists, autopct='%1.1f%%', startangle=140)
+        ax.set_title(title)
+        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        plt.show()
