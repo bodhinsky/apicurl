@@ -9,3 +9,4 @@ dist/
 providers
 backups
 data/
+.parquet
