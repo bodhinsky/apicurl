@@ -138,23 +138,46 @@ def split_artist_release_percentage(collection, top_number):
     else:
         return None
 
-def visualize_artist_release_percentage(top_k_artists, title='Artist Release Percentage'):
-    """
-    Function to visualize the release percentage of artists using a pie chart.
-
-    Parameters:
-    - top_k_artists: A Pandas DataFrame with the artist release percentages.
-    - title: The title for the pie chart.
-
-    Returns:
-    - None. Displays the pie chart.
-    """
-    required_columns = ['Artist', 'Percentage']
-    if required_columns in top_k_artists:
-        # Plotting the pie chart
-        fig, ax = plt.subplots(figsize=(8, 8))  # Adjust this size as needed
-        
-        ax.pie(top_k_artists, autopct='%1.1f%%', startangle=140)
-        ax.set_title(title)
-        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+def visualize_artist_release_percentage(dataframe):
+    if dataframe.empty:
+        raise ValueError("The dataframe is empty")
+    expected_columns = {'Artist', 'Percentage'}
+    if not expected_columns.issubset(dataframe.columns):
+        raise ValueError(f"The dataframe must contain the following columns: {expected_columns}")
+    else:
+        # Create a pie plot to show the percentage of artists
+        plt.figure(figsize=(10, 6))
+        plt.pie(dataframe['Percentage'], labels=dataframe['Artist'], autopct='%1.1f%%', startangle=140)
+        # Adding titles
+        plt.title('Percentage of Music Releases by Artist')
+        # Display the plot
         plt.show()
+
+def list_artist_releases(collection):
+    """
+    List music releases from the collection, optionally filtered by artist.
+    
+    Parameters:
+    - collection: A list of dictionaries, where each dictionary contains information about a music release.
+    - artist: An optional string to filter the releases by a specific artist.
+    
+    Returns:
+    - A Pandas DataFrame containing the relevant releases.
+    """
+
+    # Step 1: Convert the collection to a DataFrame
+    if not collection:
+        return None
+    
+    df = pd.DataFrame(collection)
+    
+    # Step 2: Filter by artist if an artist is specified
+    if artist is not None:
+        df['Artist'] == artist
+    
+    # Step 3: Check if the filtered DataFrame is empty
+    if df.empty:
+        return None
+    
+    print(df.to_string())
+    return str(df)
