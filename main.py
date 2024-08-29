@@ -2,6 +2,7 @@ import os
 import json
 from apicurl.fetch_process_collection import fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage
 
+
 def fetch_and_process():
     dc_all_releases = fetch_all_collection_pages()
     release_collection_db = process_collection(dc_all_releases)

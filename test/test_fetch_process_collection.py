@@ -205,7 +205,6 @@ def test_save_collection_overwrite_old_file(sample_collection, tmp_path):
 
     os.remove(filepath)
 
-
 def test_save_collection_do_not_overwrite_recent_file(sample_collection, tmp_path):
     filepath = "data/not_overwrite_recent.json"
     
@@ -254,7 +253,7 @@ def test_save_collection_file_error(sample_collection, tmp_path):
     with pytest.raises(FileNotFoundError):
         save_collection_to_json(sample_collection, filepath)
 
-def test_save_collection_invalid_json(tmp_path):
+def test_save_collection_invalid_json():
     collection = {"key": set([1, 2, 3])}  # set is not JSON serializable
     filepath = "data/test.json"
     
