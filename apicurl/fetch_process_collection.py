@@ -1,7 +1,7 @@
-import requests
+import requests, json, os
 from apicurl.user_auth import get_user_credentials
+from datetime import datetime, timedelta
 import pandas as pd
-import json
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -101,6 +101,83 @@ def process_collection(collection):  # Process a collection of Discogs releases.
     
     return collection_info  # Return the processed collection
 
-def save_collection_to_json(collection):
-    json.dump(collection)
-    print("Collection stored successfully")
+def save_collection_to_json(collection, filepath):
+    # Check if the collection is JSON serializable
+    try:
+        json.dumps(collection)
+    except TypeError:
+        raise TypeError("The provided collection is not JSON serializable")
+
+    if os.path.exists(filepath):
+        file_mod_time = datetime.fromtimestamp(os.path.getmtime(filepath))
+        if datetime.now() - file_mod_time < timedelta(hours=24):
+            return False  # File exists and is less than 24 hours old
+    
+    with open(filepath, 'w') as f:
+        json.dump(collection, f)
+    return True  # File was successfully written
+
+def split_artist_release_percentage(collection, top_number):
+    if isinstance(collection, list) and len(collection) > 0:   # If the collection is a list and contains at least one item, process it
+        df = pd.DataFrame(collection)
+        # Check if 'Artist' column exists in the DataFrame
+        if 'Artist' not in df.columns:
+            raise ValueError("The collection does not contain an 'artist' column")
+        # Calculate the percentage of releases for each artist
+        artist_counts = df['Artist'].value_counts(normalize=True) * 100
+        artist_percentages = artist_counts.reset_index()
+        artist_percentages.columns = ['Artist', 'Percentage']
+        # Separate the top 10 artists
+        top_artists = artist_percentages.head(top_number)
+        # Calculate the percentage for "Others"
+        others_percentage = artist_percentages['Percentage'][top_number:].sum()
+        # Append the "Others" row
+        if others_percentage > 0:
+            top_artists = top_artists._append({'Artist': 'Others', 'Percentage': others_percentage}, ignore_index=True)
+        return top_artists
+    else:
+        return None
+
+def visualize_artist_release_percentage(dataframe):
+    if dataframe.empty:
+        raise ValueError("The dataframe is empty")
+    expected_columns = {'Artist', 'Percentage'}
+    if not expected_columns.issubset(dataframe.columns):
+        raise ValueError(f"The dataframe must contain the following columns: {expected_columns}")
+    else:
+        # Create a pie plot to show the percentage of artists
+        plt.figure(figsize=(10, 6))
+        plt.pie(dataframe['Percentage'], labels=dataframe['Artist'], autopct='%1.1f%%', startangle=140)
+        # Adding titles
+        plt.title('Percentage of Music Releases by Artist')
+        # Display the plot
+        plt.show()
+
+def list_artist_releases(collection):
+    """
+    List music releases from the collection, optionally filtered by artist.
+    
+    Parameters:
+    - collection: A list of dictionaries, where each dictionary contains information about a music release.
+    - artist: An optional string to filter the releases by a specific artist.
+    
+    Returns:
+    - A Pandas DataFrame containing the relevant releases.
+    """
+
+    # Step 1: Convert the collection to a DataFrame
+    if not collection:
+        return None
+    
+    df = pd.DataFrame(collection)
+    
+    # Step 2: Filter by artist if an artist is specified
+    if artist is not None:
+        df['Artist'] == artist
+    
+    # Step 3: Check if the filtered DataFrame is empty
+    if df.empty:
+        return None
+    
+    print(df.to_string())
+    return str(df)
