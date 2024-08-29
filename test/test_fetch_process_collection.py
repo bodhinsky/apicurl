@@ -52,7 +52,7 @@ def test_get_user_credentials_missing_token():
     assert "Environment variable DISCOGS_USER_TOKEN is not set." in str(context.value)
 
 @patch.dict(os.environ, {
-    'DISCOGS_USER_SECRET': 'def456'
+    'DISCOGS_USER_TOKEN': 'def456'
 }, clear=True)
 def test_get_user_credentials_missing_name():
     with pytest.raises(EnvironmentError) as context:
