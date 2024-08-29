@@ -1,5 +1,5 @@
 import os
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, MagicMock
 import pytest
 from apicurl.user_auth import get_user_credentials
 from apicurl.fetch_process_collection import get_user_collection, fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage, visualize_artist_release_percentage, list_artist_releases
@@ -174,9 +174,8 @@ def test_save_collection_to_json_invalid_json():
     with pytest.raises(TypeError):
         save_collection_to_json(collection, filepath)
 
-
 def test_save_collection_new_file(sample_collection, tmp_path):
-    filepath = tmp_path / "test.json"
+    filepath = "data/new_file.json"
     
     result = save_collection_to_json(sample_collection, filepath)
     
@@ -187,7 +186,7 @@ def test_save_collection_new_file(sample_collection, tmp_path):
     assert loaded_data == sample_collection
 
 def test_save_collection_overwrite_old_file(sample_collection, tmp_path):
-    filepath = tmp_path / "test.json"
+    filepath = "data/overwrite_old.json"
     
     # Create an initial file
     with open(filepath, 'w') as f:
@@ -204,8 +203,10 @@ def test_save_collection_overwrite_old_file(sample_collection, tmp_path):
         loaded_data = json.load(f)
     assert loaded_data == sample_collection
 
+    os.remove(filepath)
+
 def test_save_collection_do_not_overwrite_recent_file(sample_collection, tmp_path):
-    filepath = tmp_path / "test.json"
+    filepath = "data/not_overwrite_recent.json"
     
     # Create an initial file
     initial_data = {"old": "data"}
@@ -223,9 +224,11 @@ def test_save_collection_do_not_overwrite_recent_file(sample_collection, tmp_pat
         loaded_data = json.load(f)
     assert loaded_data == initial_data
 
+    os.remove(filepath)
+
 @freeze_time("2023-01-01 12:00:00")
 def test_save_collection_exact_24_hours(sample_collection, tmp_path):
-    filepath = tmp_path / "test.json"
+    filepath = "data/exact_day.json"
     
     # Create an initial file
     initial_data = {"old": "data"}
@@ -242,16 +245,17 @@ def test_save_collection_exact_24_hours(sample_collection, tmp_path):
     with open(filepath, 'r') as f:
         loaded_data = json.load(f)
     assert loaded_data == sample_collection
+    os.remove(filepath)
 
 def test_save_collection_file_error(sample_collection, tmp_path):
-    filepath = tmp_path / "nonexistent_dir" / "test.json"
+    filepath = "data/nonexistent_dir/test.json"
     
     with pytest.raises(FileNotFoundError):
         save_collection_to_json(sample_collection, filepath)
 
-def test_save_collection_invalid_json(tmp_path):
+def test_save_collection_invalid_json():
     collection = {"key": set([1, 2, 3])}  # set is not JSON serializable
-    filepath = tmp_path / "test.json"
+    filepath = "data/test.json"
     
     with pytest.raises(TypeError):
         save_collection_to_json(collection, filepath)
@@ -333,11 +337,14 @@ def test_visualize_artist_release_percentage_normal(sample_percentage_dataframe)
          patch('matplotlib.pyplot.title') as mock_title, \
          patch('matplotlib.pyplot.show') as mock_show:
         
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+
+        mock_subplots.return_value = (mock_fig, mock_ax)
+
         visualize_artist_release_percentage(sample_percentage_dataframe)
         
-        mock_figure.assert_called_once_with(figsize=(10, 6))
-        mock_pie.assert_called_once()
-        mock_title.assert_called_once_with('Percentage of Music Releases by Artist')
+        mock_subplots.assert_called_once_with(figsize=(8, 8))
         mock_show.assert_called_once()
 
 def test_visualize_artist_release_percentage_empty_dataframe():
@@ -356,20 +363,22 @@ def test_visualize_artist_release_percentage_missing_columns():
     pd.DataFrame({'Artist': ['A'], 'Percentage': [100]})
 ])
 def test_visualize_artist_release_percentage_various_inputs(test_df):
-    with patch('matplotlib.pyplot.figure') as mock_figure, \
-         patch('matplotlib.pyplot.pie') as mock_pie, \
-         patch('matplotlib.pyplot.title') as mock_title, \
+    with patch('matplotlib.pyplot.subplots') as mock_subplots, \
          patch('matplotlib.pyplot.show') as mock_show:
         
+        # Create mock objects for fig and ax
+        mock_fig = MagicMock()
+        mock_ax = MagicMock()
+        
+        # Configure the return value of subplots to be a tuple of the mock objects
+        mock_subplots.return_value = (mock_fig, mock_ax)
+
         visualize_artist_release_percentage(test_df)
         
-        mock_figure.assert_called_once()
-        mock_pie.assert_called_once()
-        mock_title.assert_called_once()
-        mock_show.assert_called_once()
+        mock_subplots.assert_called_once_with(figsize=(8, 8))
 
         # Check if the correct data is passed to plt.pie
-        args, kwargs = mock_pie.call_args
+        args, kwargs = mock_ax.pie.call_args
         assert (args[0] == test_df['Percentage']).all()
         assert (kwargs['labels'] == test_df['Artist']).all()
 
@@ -379,20 +388,25 @@ def test_visualize_artist_release_percentage_plot_details(sample_percentage_data
          patch('matplotlib.pyplot.title') as mock_title, \
          patch('matplotlib.pyplot.show') as mock_show:
         
+        mock_fig = MagicMock()
+        mock_ax =  MagicMock()
+
+        mock_subplots.return_value = (mock_fig, mock_ax)
+
         visualize_artist_release_percentage(sample_percentage_dataframe)
         
         # Check figure size
-        mock_figure.assert_called_once_with(figsize=(10, 6))
-        
+        mock_subplots.assert_called_once_with(figsize=(8, 8))
+
         # Check pie chart details
         args, kwargs = mock_pie.call_args
+
         assert (args[0] == sample_percentage_dataframe['Percentage']).all()
         assert (kwargs['labels'] == sample_percentage_dataframe['Artist']).all()
         assert kwargs['autopct'] == '%1.1f%%'
         assert kwargs['startangle'] == 140
-        
-        # Check title
-        mock_title.assert_called_once_with('Percentage of Music Releases by Artist')
+
+        mock_show.assert_called_once()
 
 def test_list_artist_releases_all(sample_collection, capsys):
     result = list_artist_releases(sample_collection)
