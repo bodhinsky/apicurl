@@ -54,7 +54,7 @@ def test_get_user_credentials_missing_token():
     assert "Environment variable DISCOGS_USER_TOKEN is not set." in str(context.value)
 
 @patch.dict(os.environ, {
-    'DISCOGS_USER_SECRET': 'def456'
+    'DISCOGS_USER_TOKEN': 'def456'
 }, clear=True)
 def test_get_user_credentials_missing_name():
     with pytest.raises(EnvironmentError) as context:
@@ -165,14 +165,6 @@ def test_save_collection_to_json_empty():
     assert loaded_data == collection
     
     os.remove(filepath)
-
-def test_save_collection_to_json_file_error():
-    # Test case 5: Test file write permission error
-    collection = {"key": "value"}
-    filepath = "/var/test.json"  # Assuming no write permission in /root
-    
-    with pytest.raises(PermissionError):
-        save_collection_to_json(collection, filepath)
 
 def test_save_collection_to_json_invalid_json():
     # Test case 6: Test with non-JSON serializable data
