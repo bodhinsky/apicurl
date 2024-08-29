@@ -15,7 +15,9 @@ requests-mock = "^1.12.1"
 app = "^0.0.1"
 setuptools = "^70.1.0"
 seaborn = "^0.13.2"
+freezegun = "^1.5.1"
 python-dotenv = "^1.0.1"
+
 
 [build-system]
 requires = ["poetry-core"]
