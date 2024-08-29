@@ -117,42 +117,44 @@ def save_collection_to_json(collection, filepath):
         json.dump(collection, f)
     return True  # File was successfully written
 
-def split_artist_release_percentage(collection, top_k):
-    artist_column = 'Artist'
+def split_artist_release_percentage(collection, top_number):
+    if isinstance(collection, list) and len(collection) > 0:   # If the collection is a list and contains at least one item, process it
+        df = pd.DataFrame(collection)
+        # Check if 'Artist' column exists in the DataFrame
+        if 'Artist' not in df.columns:
+            raise ValueError("The collection does not contain an 'artist' column")
+        # Calculate the percentage of releases for each artist
+        artist_counts = df['Artist'].value_counts(normalize=True) * 100
+        artist_percentages = artist_counts.reset_index()
+        artist_percentages.columns = ['Artist', 'Percentage']
+        # Separate the top 10 artists
+        top_artists = artist_percentages.head(top_number)
+        # Calculate the percentage for "Others"
+        others_percentage = artist_percentages['Percentage'][top_number:].sum()
+        # Append the "Others" row
+        if others_percentage > 0:
+            top_artists = top_artists._append({'Artist': 'Others', 'Percentage': others_percentage}, ignore_index=True)
+        return top_artists
+    else:
+        return None
 
-    if not isinstance(collection, list):
-        raise ValueError("The collection must be a list of dictionaries representing rows.")
-    
-    # Convert the JSON list to a DataFrame
-    df = pd.DataFrame(collection)
-    
-    # Check if the artist column exists
-    if artist_column not in collection.columns:
-        raise ValueError(f"The specified column '{artist_column}' does not exist in the DataFrame.")
-    
-    # Step 1: Count the number of releases per artist
-    artist_counts = collection[artist_column].value_counts().reset_index()
-    artist_counts.columns = [artist_column, 'Count']
-    
-    # Step 2: Calculate the percentage of releases for each artist
-    total_releases = artist_counts['Count'].sum()
-    artist_counts['Percentage'] = (artist_counts['Count'] / total_releases) * 100
-    
-    # Step 3: Sort the DataFrame by release percentage in descending order
-    artist_counts = artist_counts.sort_values(by='Percentage', ascending=False)
-    
-    # Step 4: Select the top_k artists
-    top_k_df = artist_counts.head(top_k).copy()
-    
-    # Step 5: Consolidate the remaining artists into one row as "Others"
-    if len(artist_counts) > top_k:
-        others_df = artist_counts.iloc[top_k:].copy()
-        others_row = pd.DataFrame({
-            artist_column: ['Others'],
-            'Count': [others_df['Count'].sum()],
-            'Percentage': [others_df['Percentage'].sum()]
-        })
-        # Append the "Others" row to the top_k DataFrame
-        top_k_df = pd.concat([top_k_df, others_row], ignore_index=True)
-    
-    return top_k_df
+def visualize_artist_release_percentage(top_k_artists, title='Artist Release Percentage'):
+    """
+    Function to visualize the release percentage of artists using a pie chart.
+
+    Parameters:
+    - top_k_artists: A Pandas DataFrame with the artist release percentages.
+    - title: The title for the pie chart.
+
+    Returns:
+    - None. Displays the pie chart.
+    """
+    required_columns = ['Artist', 'Percentage']
+    if required_columns in top_k_artists:
+        # Plotting the pie chart
+        fig, ax = plt.subplots(figsize=(8, 8))  # Adjust this size as needed
+        
+        ax.pie(top_k_artists, autopct='%1.1f%%', startangle=140)
+        ax.set_title(title)
+        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        plt.show()

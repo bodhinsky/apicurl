@@ -1,6 +1,6 @@
 import os
 import json
-from apicurl.fetch_process_collection import fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage
+from apicurl.fetch_process_collection import fetch_all_collection_pages, process_collection, save_collection_to_json, split_artist_release_percentage, visualize_artist_release_percentage
 
 
 def fetch_and_process():
@@ -15,3 +15,4 @@ if __name__ == "__main__":
     print(release_collection_db)
     top_k_artists = split_artist_release_percentage(release_collection_db, 2)
     print(top_k_artists)
+    visualize_artist_release_percentage(top_k_artists)
