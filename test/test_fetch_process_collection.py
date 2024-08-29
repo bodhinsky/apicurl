@@ -166,7 +166,6 @@ def test_save_collection_to_json_empty():
     
     os.remove(filepath)
 
-
 def test_save_collection_to_json_invalid_json():
     # Test case 6: Test with non-JSON serializable data
     collection = {"key": set([1, 2, 3])}  # set is not JSON serializable
